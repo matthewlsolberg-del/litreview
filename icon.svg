@@ -1,13 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#2B4C9B"/>
-  <rect x="104" y="96" width="304" height="320" rx="22" fill="#F7F7F4"/>
-  <!-- three references with hanging indents -->
-  <g fill="#2B4C9B">
-    <rect x="140" y="140" width="232" height="18" rx="9"/>
-    <rect x="176" y="172" width="196" height="18" rx="9"/>
-    <rect x="140" y="226" width="200" height="18" rx="9"/>
-    <rect x="176" y="258" width="160" height="18" rx="9"/>
-    <rect x="140" y="312" width="232" height="18" rx="9"/>
-    <rect x="176" y="344" width="120" height="18" rx="9"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Lit Review Desk">
+  <rect width="512" height="512" rx="96" fill="#F3EAD7"/>
+  <!-- faint construction circle -->
+  <circle cx="256" cy="262" r="182" fill="none" stroke="#B5523B" stroke-width="3" stroke-dasharray="2 10" opacity=".55"/>
+  <!-- dividers -->
+  <g fill="none" stroke="#4A3220" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M214 96 V70" stroke-width="12"/>
+    <circle cx="214" cy="122" r="26" stroke-width="14"/>
+    <path d="M200 146 L118 424 M228 146 L332 424" stroke-width="16"/>
+    <path d="M152 330 Q224 356 300 330" stroke-width="7"/>
+  </g>
+  <circle cx="214" cy="122" r="7" fill="#4A3220"/>
+  <!-- quill -->
+  <g stroke="#4A3220" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M408 82 C440 150 360 260 262 304 C246 236 320 110 408 82 Z" fill="#F3EAD7" stroke-width="12"/>
+    <path d="M404 90 L176 420" fill="none" stroke-width="10"/>
+    <path d="M176 420 L162 446 L190 428 Z" fill="#4A3220" stroke-width="6"/>
+    <path d="M360 152 L398 150 M334 190 L380 196 M312 222 L352 236 M352 164 L320 150 M326 202 L292 196 M302 238 L276 240" fill="none" stroke-width="6"/>
+    <path d="M226 348 L242 358" stroke="#B5523B" stroke-width="14"/>
   </g>
 </svg>

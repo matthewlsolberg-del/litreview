@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Plan literature searches, collect and screen sources, get correct APA 7 citations, and export an annotated bibliography to Word.">
-<meta name="theme-color" content="#2B4C9B">
+<meta name="theme-color" content="#9A3D21">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Lit Review">
@@ -18,30 +18,36 @@
 <title>Lit Review Desk</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=IM+Fell+English+SC&family=IBM+Plex+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 /* Layout: sticky header with tabs; Library = source list beside an editor pane; Bibliography = a paper-like preview of the finished document. */
 :root{
-  --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#E9EDF2; --ink:#17202C; --muted:#5A6576; --line:#D9DEE6;
-  --accent:#2B4C9B; --accent-ink:#FFFFFF; --accent-soft:#E3E9F7;
-  --ok:#2E7A4E; --ok-soft:#E1F1E7; --warn:#9A6400; --warn-soft:#FBF0D9; --bad:#A83A3A; --bad-soft:#F7E3E3; --idle-soft:#E8EBF0;
-  --paper:#FFFFFF; --paper-ink:#111111; --paper-edge:#CDD3DC;
-  --f-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  /* Codex: a Renaissance notebook. Parchment ground, iron-gall sepia ink, red-chalk (sanguine) accent, verdigris and ochre for state. */
+  --bg:#EDE1C6; --surface:#F8F0DE; --sunk:#E6D8BB; --ink:#2C1F14; --muted:#6B573F; --line:#CDB993;
+  --accent:#9A3D21; --accent-ink:#FFF5E6; --accent-soft:#EFD6C2;
+  --ok:#44664C; --ok-soft:#DCE5D0; --warn:#946711; --warn-soft:#F0DFB9; --bad:#8A2222; --bad-soft:#F0D1C7; --idle-soft:#E4D6B9;
+  --paper:#FDF9EF; --paper-ink:#1C140D; --paper-edge:#CBB792;
+  --grain:.55; --art-filter:none; --shadow:rgba(70,40,12,.28);
+  --f-ui:"Spectral",Georgia,"Times New Roman",serif;
+  --f-display:"Cormorant Garamond","EB Garamond",Georgia,serif;
+  --f-label:"IM Fell English SC","Cormorant Garamond",Georgia,serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
   --f-doc:"Tinos","Times New Roman",Times,serif;
-  --r:8px;
+  --r:6px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#11151B; --surface:#1A2029; --sunk:#232A35; --ink:#E5E9EF; --muted:#9AA5B5; --line:#2D3542;
-  --accent:#8EA8EE; --accent-ink:#0E1420; --accent-soft:#243256;
-  --ok:#7CCB9A; --ok-soft:#1C3527; --warn:#E6B35C; --warn-soft:#3A2E17; --bad:#EE9292; --bad-soft:#3D2222; --idle-soft:#262E3A;
-  --paper:#F7F7F4; --paper-ink:#141414; --paper-edge:#3A4350; color-scheme:dark}}
+  --bg:#18120C; --surface:#221A12; --sunk:#2B2117; --ink:#EFE3CA; --muted:#B39E7E; --line:#43352399;
+  --accent:#E28B62; --accent-ink:#1A0E07; --accent-soft:#40261A;
+  --ok:#9DC39B; --ok-soft:#203020; --warn:#E3B560; --warn-soft:#3A2C14; --bad:#F09C8B; --bad-soft:#3F1F19; --idle-soft:#30251A;
+  --paper:#F4EAD5; --paper-ink:#1C140D; --paper-edge:#4A3A28;
+  --grain:.35; --art-filter:invert(.86) sepia(.55) saturate(1.3) hue-rotate(-8deg) brightness(1.05); --shadow:rgba(0,0,0,.5); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#11151B; --surface:#1A2029; --sunk:#232A35; --ink:#E5E9EF; --muted:#9AA5B5; --line:#2D3542;
-  --accent:#8EA8EE; --accent-ink:#0E1420; --accent-soft:#243256;
-  --ok:#7CCB9A; --ok-soft:#1C3527; --warn:#E6B35C; --warn-soft:#3A2E17; --bad:#EE9292; --bad-soft:#3D2222; --idle-soft:#262E3A;
-  --paper:#F7F7F4; --paper-ink:#141414; --paper-edge:#3A4350; color-scheme:dark}
+  --bg:#18120C; --surface:#221A12; --sunk:#2B2117; --ink:#EFE3CA; --muted:#B39E7E; --line:#43352399;
+  --accent:#E28B62; --accent-ink:#1A0E07; --accent-soft:#40261A;
+  --ok:#9DC39B; --ok-soft:#203020; --warn:#E3B560; --warn-soft:#3A2C14; --bad:#F09C8B; --bad-soft:#3F1F19; --idle-soft:#30251A;
+  --paper:#F4EAD5; --paper-ink:#1C140D; --paper-edge:#4A3A28;
+  --grain:.35; --art-filter:invert(.86) sepia(.55) saturate(1.3) hue-rotate(-8deg) brightness(1.05); --shadow:rgba(0,0,0,.5); color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
@@ -233,6 +239,18 @@ a.chip{text-decoration:none}
 .refine > summary::before{content:"+";font-weight:600;color:var(--accent);width:12px}
 .refine[open] > summary{margin-bottom:12px}
 .refine[open] > summary::before{content:"–"}
+.aibtn{gap:6px}
+.aidot{width:8px;height:8px;border-radius:50%;background:var(--muted);opacity:.6}
+.aidot.on{background:var(--ok);opacity:1}
+.provs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.prov{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px;cursor:pointer;font-size:13.5px}
+.prov:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.keysteps{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.keysteps a{color:var(--accent)}
+.modal .box.wide{width:min(820px,100%)}
+.synth{max-height:60vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--paper);color:var(--paper-ink);font-family:var(--f-doc);font-size:15px;line-height:1.55}
+.synth p{margin:0 0 .8em}
+@media (max-width:560px){.provs{grid-template-columns:minmax(0,1fr)}}
 /* APA guide */
 .guide{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
 .guide .card h3{font-size:15px}
@@ -289,17 +307,121 @@ a.chip{text-decoration:none}
   .cites .k{grid-column:1 / -1}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ================= Codex skin & motion ================= */
+body{font-size:15px;line-height:1.55;background-color:var(--bg);
+  background-image:
+    radial-gradient(120% 80% at 50% 0%, transparent 55%, var(--shadow) 160%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-attachment:fixed}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:0}
+h2{font-size:23px;font-weight:600}
+h3{font-size:18px;font-weight:600}
+.label,.stats span,.seg button,nav.tabs button,th,.steps li .n,.proj label,.brand span{font-family:var(--f-label);letter-spacing:.04em;text-transform:none}
+.label{font-size:14px}
+header.top{background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 8px 20px -18px var(--shadow)}
+body::before{background:var(--surface)}
+.brand{align-items:center;gap:10px}
+.brand b{font-family:var(--f-display);font-style:italic;font-size:25px;font-weight:600;letter-spacing:.005em;line-height:1}
+.brand .gear{width:30px;height:30px;color:var(--accent);flex:none;animation:spin 48s linear infinite}
+nav.tabs button{font-size:16px;color:var(--muted);transition:color .25s}
+nav.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.card,.list,.editor,.stats,.pcard,.steps li,.tablewrap,.dbs .db,.ask{background:var(--surface);border-color:var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 24px -20px var(--shadow)}
+.btn{border-color:var(--line);background:var(--surface);font-family:var(--f-ui);font-weight:500;position:relative;overflow:hidden;transition:transform .12s ease,border-color .2s,background .2s,box-shadow .2s}
+.btn:hover{border-color:var(--muted)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 88%,#fff) 0%,var(--accent) 55%,color-mix(in srgb,var(--accent) 85%,#000) 100%);border-color:color-mix(in srgb,var(--accent) 70%,#000);box-shadow:0 6px 14px -8px var(--accent)}
+.btn.primary:hover{box-shadow:0 8px 18px -8px var(--accent)}
+.btn .spark{font-family:var(--f-label);text-transform:none;letter-spacing:.03em;font-size:13px}
+.ink{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.22;transform:scale(0);animation:ink .6s ease-out forwards}
+@keyframes ink{to{transform:scale(1);opacity:0}}
+select,input[type=text],input[type=search],input:not([type]),input[type=password],textarea{background:var(--paper);color:var(--paper-ink);border-color:var(--line)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) select,:root:not([data-theme="light"]) input:not([type=checkbox]):not([type=radio]),:root:not([data-theme="light"]) textarea{background:var(--sunk);color:var(--ink)}}
+:root[data-theme="dark"] select,:root[data-theme="dark"] input:not([type=checkbox]):not([type=radio]),:root[data-theme="dark"] textarea{background:var(--sunk);color:var(--ink)}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
+.chip{font-family:var(--f-ui)}
+.item[aria-current="true"]{background:var(--accent-soft)}
+.ref{font-size:15.5px}
+.preview,.paper{background:var(--paper);box-shadow:0 1px 0 var(--paper-edge),0 18px 40px -26px var(--shadow)}
+.paper{background-image:linear-gradient(90deg,transparent 0 calc(1in - 18px),rgba(154,61,33,.18) calc(1in - 18px) calc(1in - 17px),transparent calc(1in - 17px))}
+.toast{background:var(--ink);color:var(--bg);font-family:var(--f-ui);border-radius:4px;box-shadow:0 10px 30px -10px var(--shadow);animation:toastIn .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.modal{background:rgba(28,18,10,.5);backdrop-filter:blur(2px)}
+.modal .box{background:var(--surface);border-color:var(--line);box-shadow:0 30px 60px -30px rgba(0,0,0,.6);animation:rise .35s cubic-bezier(.2,.8,.2,1)}
+.top-row .brand{order:0}.top-row .proj{order:1}.top-row .aibtn{order:2}
+@media (max-width:720px){.top-row .aibtn{order:1;margin-left:auto}.top-row .proj{order:2;flex:1 1 100%}.top-row .proj select{max-width:none;flex:1}.top-row .brand{margin-right:0}}
+/* hero */
+.hero{max-width:1080px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:8px 28px;align-items:center}
+.hero-copy{display:flex;flex-direction:column;gap:14px;min-width:0}
+.hero h1{font-family:var(--f-display);font-weight:600;font-size:clamp(34px,6vw,56px);line-height:1.02;letter-spacing:-.005em}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero .kicker{font-family:var(--f-label);color:var(--muted);font-size:16px}
+.hero-art{position:relative;min-width:0;aspect-ratio:4/3;max-width:100%}
+.hero-art img{width:100%;height:100%;object-fit:contain;filter:var(--art-filter);animation:draw 2.2s cubic-bezier(.5,0,.2,1) .15s both,float 9s ease-in-out 2.4s infinite}
+.hero-art .orbit{position:absolute;top:0;bottom:0;left:0;right:0;margin:auto;height:100%;width:auto;max-width:100%;aspect-ratio:1;color:var(--accent);opacity:.22;animation:spin 120s linear infinite;pointer-events:none}
+.examples,.ask{grid-column:1 / -1}
+.ask{max-width:760px;width:100%}
+.ask textarea{font-family:var(--f-display);font-size:22px;font-style:italic;color:var(--ink);background:transparent}
+#askQ{background:transparent!important;color:var(--ink)!important}
+.ask textarea::placeholder{color:var(--muted);opacity:.8}
+.examples button{font-family:var(--f-ui);border-color:var(--line)}
+@keyframes draw{from{clip-path:inset(0 100% 0 0);opacity:.2}to{clip-path:inset(0 0 0 0);opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(-.4deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes stamp{0%{transform:scale(1.8) rotate(-14deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+/* steps: roman numerals */
+.steps li{transition:transform .25s ease,box-shadow .25s ease}
+.steps li:hover{transform:translateY(-3px);box-shadow:0 16px 28px -22px var(--shadow)}
+.steps li .n{font-size:15px;color:var(--accent)}
+.steps li b{font-family:var(--f-display);font-size:20px}
+.steps li img{height:64px;width:auto;align-self:flex-start;filter:var(--art-filter);margin-bottom:2px}
+/* section art */
+.art{display:block;margin:0 auto;max-width:min(320px,80%);height:auto;filter:var(--art-filter);opacity:.92}
+.empty .art{max-width:220px;animation:draw 1.6s cubic-bezier(.5,0,.2,1) both}
+.view-head{display:flex;align-items:center;gap:16px;margin:0 0 14px}
+.view-head img{height:84px;width:auto;filter:var(--art-filter)}
+.view-head h2{font-size:28px}
+.divider{display:block;width:min(560px,90%);height:auto;margin:22px auto;opacity:.75;filter:var(--art-filter)}
+/* motion on view change and fresh results */
+.entering > *{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
+.entering > *:nth-child(2){animation-delay:.06s}.entering > *:nth-child(3){animation-delay:.12s}.entering > *:nth-child(4){animation-delay:.18s}.entering > *:nth-child(5){animation-delay:.24s}
+.hit.fresh{animation:rise .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 45ms)}
+.hit{transition:background .2s}
+.hit:hover{background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+.seal{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-family:var(--f-label);font-size:14px}
+.seal i{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 35%,color-mix(in srgb,var(--accent) 80%,#fff),var(--accent) 60%,color-mix(in srgb,var(--accent) 70%,#000));color:var(--accent-ink);font-style:normal;font-size:13px;box-shadow:0 2px 6px -2px var(--shadow)}
+.seal.now i{animation:stamp .55s cubic-bezier(.2,.8,.2,1) both}
+.loading{display:flex;flex-direction:column;align-items:center;gap:10px;padding:26px;color:var(--muted);font-family:var(--f-display);font-style:italic;font-size:19px}
+.loading svg{width:54px;height:54px;color:var(--accent);animation:spin 2.4s linear infinite}
+.loading svg .small-gear{transform-origin:73px 27px;animation:spin 1.2s linear infinite reverse}
+.stats b{font-family:var(--f-display);font-size:26px;font-variant-numeric:lining-nums tabular-nums}
+.hit-title{font-family:var(--f-display);font-size:19px;font-weight:600;line-height:1.2}
+@media (max-width:860px){
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .hero-art{order:-1;max-height:220px;aspect-ratio:auto;height:220px}
+}
+@media (max-width:720px){
+  .brand b{font-size:22px}
+  .brand .gear{width:26px;height:26px}
+  nav.tabs{background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  nav.tabs button{font-size:14px}
+  .view-head img{height:60px}
+  .hero-art{height:180px}
+}
+@media (prefers-reduced-motion:reduce){.hero-art img,.hero-art .orbit,.brand .gear,.loading svg,.entering > *,.hit.fresh,.seal.now i,.empty .art{animation:none!important}}
 </style>
 
 <header class="top">
   <div class="wrap">
     <div class="top-row">
-      <div class="brand"><b>Lit Review Desk</b><span>APA 7th edition</span></div>
+      <div class="brand"><svg class="gear" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="32" cy="32" r="9"/><path d="M32 6v8M32 50v8M6 32h8M50 32h8M13.6 13.6l5.7 5.7M44.7 44.7l5.7 5.7M13.6 50.4l5.7-5.7M44.7 19.3l5.7-5.7"/><circle cx="32" cy="32" r="18" stroke-dasharray="3 4"/><circle cx="32" cy="32" r="2.5" fill="currentColor"/></svg><b>Lit Review Desk</b><span>APA 7th edition</span></div>
       <div class="proj">
         <label for="projSel">Project</label>
         <select id="projSel"></select>
         <button class="btn small ghost" id="projEditBtn" type="button">Edit</button>
       </div>
+      <button class="btn small aibtn" id="aiBtn" type="button" data-act="aisettings" hidden></button>
     </div>
     <nav class="tabs" role="tablist">
       <button role="tab" data-tab="start" aria-selected="true" id="tab-start">Start</button>
@@ -342,7 +464,8 @@ a.chip{text-decoration:none}
   <section id="view-find" hidden></section>
   <section id="view-bib" hidden></section>
   <section id="view-guide" hidden>
-    <div class="row" style="margin-bottom:14px;justify-content:space-between"><h2>APA 7 quick reference</h2><span class="small muted">The rules the formatter applies, plus the ones you apply while writing.</span></div>
+    <div class="view-head"><img src="assets/annotate.webp" alt="" onerror="this.remove()"><h2>APA 7 quick reference</h2></div>
+    <div class="row" style="margin-bottom:14px;justify-content:space-between"><span class="small muted">The rules the formatter applies, plus the ones you apply while writing.</span></div>
     <div class="guide">
       <div class="card"><h3>Reference list layout</h3><ul>
         <li>Start on a new page titled <b>References</b> (bold, centered). For an annotated bibliography, use the title your instructor asks for.</li>
@@ -384,7 +507,7 @@ a.chip{text-decoration:none}
       <div class="card"><h3>Annotations</h3><ul>
         <li>Each entry is the full APA reference followed by the annotation, indented 0.5 in.</li>
         <li>Typical length is 100–250 words: <b>summarize</b> the work, <b>evaluate</b> its strengths and limits, and explain its <b>relevance</b> to your question.</li>
-        <li>Write in the third person and in your own words. Claude's drafts start from the abstract, so check every claim against the full text.</li>
+        <li>Write in the third person and in your own words. AI drafts start from the abstract, so check every claim against the full text.</li>
       </ul></div>
       <div class="card"><h3>Examples</h3>
         <p class="ex hang">Braun, V., &amp; Clarke, V. (2006). Using thematic analysis in psychology. <i>Qualitative Research in Psychology, 3</i>(2), 77–101. https://doi.org/10.1191/1478088706qp063oa</p>
@@ -943,7 +1066,7 @@ function renderLibrary() {
   const list = filtered();
   const box = $("#list");
   if (!S.sources.length) {
-    box.innerHTML = '<div class="empty"><b>No sources yet</b><span>Add a source by hand, or import citations: in Google Scholar click Cite → BibTeX; in PubMed, Send to → Citation manager; in Zotero, Export → RIS. Paste the result into Import.</span><div class="row"><button class="btn" data-act="import" type="button">Import citations</button><button class="btn primary" data-act="add" type="button">Add source</button></div></div>';
+    box.innerHTML = '<div class="empty"><img class="art" src="assets/empty.webp" alt="" onerror="this.remove()"><b>No sources yet</b><span>Add a source by hand, or import citations: in Google Scholar click Cite → BibTeX; in PubMed, Send to → Citation manager; in Zotero, Export → RIS. Paste the result into Import.</span><div class="row"><button class="btn" data-act="import" type="button">Import citations</button><button class="btn primary" data-act="add" type="button">Add source</button></div></div>';
   } else if (!list.length) {
     box.innerHTML = '<div class="empty"><b>Nothing matches</b><span>Try another status, project, or search term.</span></div>';
   } else {
@@ -1024,8 +1147,8 @@ function renderEditor(focusId) {
         ((s.status === "exclude") ? '<label class="f" for="fld-exclusionReason"><span>Reason for exclusion</span><input id="fld-exclusionReason" data-field="exclusionReason" value="' + esc(s.exclusionReason) + '" placeholder="e.g. Wrong population; not peer reviewed; before 2010"></label>' : "") +
         '<label class="f" for="fld-tags"><span>Tags</span><input id="fld-tags" data-field="tags" value="' + esc((s.tags || []).join(", ")) + '" placeholder="Comma separated, e.g. qualitative, adolescents, theme 2"></label>' +
       '</div></div>' +
-      '<div class="section"><div class="label">Abstract</div><textarea id="fld-abstract" data-field="abstract" rows="4" placeholder="Paste the abstract. Claude uses it to draft the annotation.">' + esc(s.abstract) + '</textarea></div>' +
-      '<div class="section"><div class="label"><span>Annotation</span><button type="button" class="btn small needs-sample" data-act="draft"' + (S.sample ? "" : " hidden") + '><span class="spark">Claude</span> Draft from abstract &amp; notes</button></div>' +
+      '<div class="section"><div class="label">Abstract</div><textarea id="fld-abstract" data-field="abstract" rows="4" placeholder="Paste the abstract. The AI uses it to draft the annotation.">' + esc(s.abstract) + '</textarea></div>' +
+      '<div class="section"><div class="label"><span>Annotation</span><button type="button" class="btn small needs-sample" data-act="draft"' + (S.sample ? "" : " hidden") + '><span class="spark">' + aiName() + '</span> Draft from abstract &amp; notes</button></div>' +
         '<label class="f" for="fld-summary"><span>Summary: purpose, method, sample, key findings</span><textarea id="fld-summary" data-field="summary" rows="4">' + esc(s.summary) + '</textarea></label>' +
         '<label class="f" for="fld-evaluation"><span>Evaluation: strengths, limitations, credibility</span><textarea id="fld-evaluation" data-field="evaluation" rows="3">' + esc(s.evaluation) + '</textarea></label>' +
         '<label class="f" for="fld-relevance"><span>Relevance: how it serves the research question</span><textarea id="fld-relevance" data-field="relevance" rows="2">' + esc(s.relevance) + '</textarea></label>' +
@@ -1107,12 +1230,87 @@ async function saveDraft() {
   try { await writeDoc("sources", s.id, rec); S.dirty = false; S.draft = rec; toast(isNew ? "Added to library" : "Saved"); renderLive(); renderLibrary(); } catch (e) {}
 }
 
-/* ---------- Claude helpers (sample) ---------- */
+/* ---------- AI helpers (Claude on claude.ai; Gemini or ChatGPT on the hosted site) ---------- */
+const aiName = () => (S.sample && S.sample.label) ? S.sample.label() : "Claude";
+const aiReady = () => !!S.sample && (!S.sample.configured || S.sample.configured());
+function aiFail(e, fallback) {
+  if (e && e.code === "no_key") { openAISettings("Connect an AI to use this. Gemini is free."); return; }
+  if (e && e.code === "bad_key") { openAISettings(e.message); return; }
+  toast(e && e.code === "rate_limited" ? aiName() + " is busy or out of credit. Try again in a minute." : e && e.code === "not_granted" ? "AI access was declined for this page." : (e && e.message) || fallback);
+}
+function openAISettings(note) {
+  const cfg = (S.sample && S.sample.config && S.sample.config()) || { provider: "gemini" };
+  const D = (S.sample && S.sample.defaults) || { gemini: "gemini-flash-latest", openai: "gpt-5.4-mini" };
+  const MODELS = { gemini: [["gemini-flash-latest", "Gemini Flash (fast, free tier)"], ["gemini-pro-latest", "Gemini Pro (smarter, lower free limits)"]], openai: [["gpt-5.4-mini", "GPT-5.4 mini (fast, cheap)"], ["gpt-5.5", "GPT-5.5 (smartest, costs more)"]] };
+  let prov = cfg.provider || "gemini";
+  const draw = () => {
+    $("#modalRoot").innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="aiT"><div class="box">' +
+      '<h2 id="aiT">AI assistant</h2>' + (note ? '<div class="note" style="background:var(--warn-soft)">' + esc(note) + '</div>' : '') +
+      '<p class="small muted" style="margin:0">Connect Gemini or ChatGPT to draft annotations, suggest search terms, read pasted references and synthesize your sources. You use your own key: it is saved only in this browser and sent only to Google or OpenAI.</p>' +
+      '<div class="provs">' +
+        '<label class="prov"><input type="radio" name="prov" value="gemini"' + (prov === "gemini" ? " checked" : "") + '><span><b>Gemini</b> by Google<br><span class="small muted">Free key, no card needed. Recommended.</span></span></label>' +
+        '<label class="prov"><input type="radio" name="prov" value="openai"' + (prov === "openai" ? " checked" : "") + '><span><b>ChatGPT</b> by OpenAI<br><span class="small muted">Needs API credit (pay as you go, separate from a ChatGPT Plus subscription).</span></span></label>' +
+      '</div>' +
+      '<ol class="small keysteps">' + (prov === "gemini"
+        ? '<li>Open <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in with a Google account.</li><li>Tap <b>Create API key</b> and copy it.</li><li>Paste it below.</li>'
+        : '<li>Open <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a> and sign in.</li><li>Add a few dollars of credit under Billing if you haven\'t.</li><li>Tap <b>Create new secret key</b>, copy it, and paste it below.</li>') + '</ol>' +
+      '<label class="f" for="aiKey"><span>' + (prov === "gemini" ? "Gemini API key" : "OpenAI API key") + '</span><input id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="' + (prov === "gemini" ? "AIza…" : "sk-…") + '" value="' + (cfg.provider === prov && S.sample.configured() ? "••••••••" : "") + '"></label>' +
+      '<label class="f" for="aiModel"><span>Model</span><select id="aiModel">' + MODELS[prov].map(([v, l]) => '<option value="' + v + '"' + ((cfg.model || D[prov]) === v ? " selected" : "") + '>' + l + '</option>').join("") + '</select></label>' +
+      '<div class="small" id="aiMsg" role="status"></div>' +
+      '<div class="row" style="justify-content:flex-end">' + (S.sample.configured() ? '<button class="btn danger" type="button" id="aiClear" style="margin-right:auto">Disconnect</button>' : '') + '<button class="btn" type="button" data-act="modalclose">Cancel</button><button class="btn primary" type="button" id="aiSave">Test &amp; connect</button></div>' +
+      '</div></div>';
+    document.querySelectorAll('input[name="prov"]').forEach(r => r.onchange = () => { prov = r.value; draw(); });
+    $("#aiSave").onclick = async () => {
+      let key = $("#aiKey").value.trim(); const msg = $("#aiMsg");
+      if (key === "••••••••") key = JSON.parse(localStorage.getItem("lrd.ai") || "{}").key || "";
+      if (!key) { msg.textContent = "Paste your API key first."; $("#aiKey").focus(); return; }
+      $("#aiSave").disabled = true; msg.textContent = "Testing the key…";
+      try { await S.sample.save({ provider: prov, key, model: $("#aiModel").value }); closeModal(); toast(aiName() + " connected."); renderHeaderAI(); renderAll(); }
+      catch (e) { $("#aiSave").disabled = false; msg.innerHTML = '<span style="color:var(--bad)">' + esc(e.message || "That key didn't work.") + '</span>'; }
+    };
+    if ($("#aiClear")) $("#aiClear").onclick = () => { S.sample.clear(); closeModal(); toast("AI disconnected."); renderHeaderAI(); renderAll(); };
+  };
+  if (!S.sample || !S.sample.save) { toast("AI settings are only needed on the hosted site."); return; }
+  draw(); setTimeout(() => $("#aiKey") && $("#aiKey").focus(), 30);
+}
+function renderHeaderAI() {
+  const b = $("#aiBtn"); if (!b) return;
+  if (!STANDALONE) { b.hidden = true; return; }
+  b.hidden = false; const on = aiReady();
+  b.innerHTML = '<span class="aidot' + (on ? " on" : "") + '"></span>' + (on ? aiName() : "Connect AI");
+  b.title = on ? aiName() + " is connected. Tap to change." : "Connect Gemini or ChatGPT";
+}
+/* Synthesis across the included sources. */
+async function synthesize(btn) {
+  const { list, letters } = bibList();
+  if (list.length < 2) { toast("Include at least two sources to synthesize."); return; }
+  const p = currentProject();
+  const lines = list.map(s => { const L = letters[s.id]; const ann = [s.summary, s.evaluation, s.relevance].filter(Boolean).join(" "); return "- Cite as " + inText(s, L).parenText + ": " + segsText(refSegs(s, L)) + "\n  Notes: " + (ann || s.abstract || "(no notes or abstract)"); }).join("\n");
+  const prompt = `You are helping a graduate research assistant plan the literature review section of a paper. Use ONLY the sources and notes below; do not add studies, findings or facts that are not stated. When you refer to a source, use exactly the APA 7 parenthetical citation given for it.
+${p && p.question ? "Research question: " + p.question + "\n" : ""}
+Write, in plain text with short headings:
+1. Themes: 3-5 themes that run across the sources, each with 2-3 sentences and citations.
+2. Agreements and tensions: where the sources agree and where they conflict.
+3. Gaps: what the sources do not answer about the research question.
+4. Suggested outline for the literature review section (a short numbered outline).
+Keep it under 600 words. Do not use Markdown symbols like ** or #; write headings on their own lines.
+
+Sources:
+${lines}`;
+  btn.disabled = true; const old = btn.innerHTML; btn.textContent = "Synthesizing…";
+  try {
+    const r = await S.sample(prompt, { modelTier: "default", cache: false });
+    const text = String(r.text || "").replace(/\*\*/g, "").replace(/^#+\s*/gm, "");
+    $("#modalRoot").innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="synT"><div class="box wide"><h2 id="synT">Synthesis of ' + list.length + ' sources</h2><p class="small muted" style="margin:0">Drafted by ' + esc(aiName()) + ' from your notes. Check every claim against the sources before you use it.</p><div class="synth">' + text.split(/\n{2,}/).map(par => '<p>' + esc(par).replace(/\n/g, "<br>") + '</p>').join("") + '</div><div class="row" style="justify-content:flex-end"><button class="btn" type="button" id="synCopy">Copy</button><button class="btn primary" type="button" data-act="modalclose">Done</button></div></div></div>';
+    $("#synCopy").onclick = () => copyText(text);
+  } catch (e) { aiFail(e, "Couldn't synthesize."); }
+  finally { btn.disabled = false; btn.innerHTML = old; }
+}
 async function draftAnnotation(btn) {
   const s = S.draft; if (!S.sample) return;
   if (!s.abstract && !s.notes && !(s.quotes || []).length) { toast("Paste the abstract (or add notes) first, so the draft is based on the source."); $("#fld-abstract")?.focus(); return; }
   const filled = ["summary", "evaluation", "relevance"].filter(k => String(s[k] || "").trim());
-  if (filled.length === 3 && !btn.dataset.armed) { btn.dataset.armed = "1"; btn.innerHTML = "Replace your text? Click again"; setTimeout(() => { if (btn.isConnected) { delete btn.dataset.armed; btn.innerHTML = '<span class="spark">Claude</span> Draft from abstract &amp; notes'; } }, 4000); return; }
+  if (filled.length === 3 && !btn.dataset.armed) { btn.dataset.armed = "1"; btn.innerHTML = "Replace your text? Click again"; setTimeout(() => { if (btn.isConnected) { delete btn.dataset.armed; btn.innerHTML = '<span class="spark">' + aiName() + '</span> Draft from abstract &amp; notes'; } }, 4000); return; }
   const onlyEmpty = filled.length > 0 && filled.length < 3;
   const proj = S.projects.find(p => p.id === s.projectId);
   const L = letterMap(scopedWithDraft())[s.id] || "";
@@ -1135,8 +1333,8 @@ Quotes the reader saved: ${(s.quotes || []).map(q => '"' + q.text + '" (p. ' + q
       ["summary", "evaluation", "relevance"].forEach(k => { if (r[k] && !(onlyEmpty && String(s[k] || "").trim())) { S.draft[k] = String(r[k]).trim(); const el = $("#fld-" + k); if (el) el.value = S.draft[k]; } });
       S.dirty = true; renderLive(); toast("Draft added. Check it against the full text before you save.");
     }
-  } catch (e) { toast(e && e.code === "rate_limited" ? "Claude is busy. Try again in a minute." : e && e.code === "not_granted" ? "Claude access was declined for this page." : "Couldn't draft the annotation."); }
-  finally { btn.disabled = false; delete btn.dataset.armed; btn.innerHTML = '<span class="spark">Claude</span> Draft from abstract &amp; notes'; }
+  } catch (e) { aiFail(e, "Couldn't draft the annotation."); }
+  finally { btn.disabled = false; delete btn.dataset.armed; btn.innerHTML = '<span class="spark">' + aiName() + '</span> Draft from abstract &amp; notes'; }
 }
 async function parseWithClaude(text) {
   const prompt = `Extract bibliographic metadata from the text below for an APA 7 reference manager.
@@ -1158,7 +1356,7 @@ function openImport() {
   const root = $("#modalRoot");
   root.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="impT"><div class="box">' +
     '<h2 id="impT">Import citations</h2>' +
-    '<div class="note">Paste <b>RIS</b> or <b>BibTeX</b> and they are read exactly. Where to get them: Google Scholar → Cite (quote icon) → BibTeX; PubMed → Send to → Citation manager; EBSCO/ProQuest → Export → RIS; Zotero/Mendeley/EndNote → Export → RIS.' + (S.sample ? ' Anything else (a reference copied from a paper\'s reference list, or a journal page) is read by Claude; check those fields afterwards.' : STANDALONE ? ' You can also paste DOIs (one or many), or a reference copied from a paper; it is matched against Crossref.' : '') + '</div>' +
+    '<div class="note">Paste <b>RIS</b> or <b>BibTeX</b> and they are read exactly. Where to get them: Google Scholar → Cite (quote icon) → BibTeX; PubMed → Send to → Citation manager; EBSCO/ProQuest → Export → RIS; Zotero/Mendeley/EndNote → Export → RIS.' + (S.sample ? ' Anything else (a reference copied from a paper\'s reference list, or a journal page) is read by the AI; check those fields afterwards.' : STANDALONE ? ' You can also paste DOIs (one or many), or a reference copied from a paper; it is matched against Crossref.' : '') + '</div>' +
     '<textarea id="impText" rows="10" placeholder="TY  - JOUR&#10;AU  - Braun, Virginia&#10;…   or   @article{…}   or a reference copied from a paper"></textarea>' +
     '<div class="small muted" id="impMsg" role="status"></div>' +
     '<div class="row" style="justify-content:flex-end"><button class="btn" type="button" data-act="modalclose">Cancel</button><button class="btn primary" type="button" id="impGo">Import</button></div>' +
@@ -1169,7 +1367,7 @@ function openImport() {
     let recs = [], how = "";
     if (/^\s*TY\s{1,2}-/m.test(text)) { recs = parseRIS(text); how = "RIS"; }
     else if (/@\w+\s*\{/.test(text)) { recs = parseBibTeX(text); how = "BibTeX"; }
-    else if (S.sample) {
+    else if (S.sample && !STANDALONE) {
       msg.textContent = "Claude is reading the text…"; $("#impGo").disabled = true;
       try { recs = await parseWithClaude(text); how = "Claude"; } catch (e) { msg.textContent = "Claude couldn't read that. Try RIS or BibTeX, or add the source by hand."; $("#impGo").disabled = false; return; }
       $("#impGo").disabled = false;
@@ -1178,12 +1376,15 @@ function openImport() {
       try {
         const res = await importFreeText(text, msg); $("#impGo").disabled = false;
         if (res.candidates) {
-          if (!res.candidates.length) { msg.textContent = "No match found. Try pasting the DOI, or add the source by hand."; return; }
+          if (!res.candidates.length) {
+            if (aiReady()) { msg.textContent = aiName() + " is reading the text…"; try { recs = await parseWithClaude(text); how = aiName(); } catch (e) { aiFail(e, "Couldn't read that."); return; } }
+            else { msg.textContent = "No match found. Try pasting the DOI, or add the source by hand."; return; }
+          } else {
           msg.innerHTML = '<div class="cands"><b>Which one is it?</b>' + res.candidates.map((c, i) => '<div class="cand"><span class="ref">' + segsHtml(refSegs(c, "")) + '</span><button class="btn small primary" type="button" data-cand="' + i + '">Use this</button></div>').join("") + '</div>';
           msg.querySelectorAll("[data-cand]").forEach(b => b.onclick = () => { closeModal(); newSource(res.candidates[+b.dataset.cand]); toast("Filled from Crossref. Review the fields, then Save."); });
           return;
-        }
-        recs = res.recs; how = res.how;
+          }
+        } else { recs = res.recs; how = res.how; }
       } catch (e) { $("#impGo").disabled = false; msg.textContent = e.message || "Lookup failed."; return; }
     } else { msg.textContent = "That isn't RIS or BibTeX. Export one of those formats from your database, or add the source by hand."; return; }
     recs = recs.filter(r => r.title || r.authors.length);
@@ -1248,7 +1449,7 @@ function renderFind() {
   v.innerHTML = (STANDALONE ? '<div class="card" id="found">' + foundHtml() + '</div><details class="refine"' + (S.strategy.open ? " open" : "") + '><summary><b>Make the search more precise</b> <span class="small muted">(optional) Add synonyms and other databases</span></summary>' : '') +
     '<div class="cols">' +
     '<div class="card">' +
-      '<div class="row" style="justify-content:space-between"><h2>Search strategy</h2>' + (S.sample ? '<button class="btn" type="button" data-act="strategy"' + (S.strategy.busy ? " disabled" : "") + '><span class="spark">Claude</span> ' + (S.strategy.busy ? "Thinking…" : "Suggest concepts &amp; synonyms") + '</button>' : '') + '</div>' +
+      '<div class="row" style="justify-content:space-between"><h2>Search strategy</h2>' + (S.sample ? '<button class="btn" type="button" data-act="strategy"' + (S.strategy.busy ? " disabled" : "") + '><span class="spark">' + aiName() + '</span> ' + (S.strategy.busy ? "Thinking…" : "Suggest concepts &amp; synonyms") + '</button>' : '') + '</div>' +
       '<label class="f" for="rq"><span>Research question' + (p ? ' (saved with ' + esc(p.name) + ')' : '') + '</span><textarea id="rq" rows="2" placeholder="e.g. What interventions reduce burnout among early-career K–12 teachers?">' + esc(p ? p.question : (S.strategy.question || "")) + '</textarea>' + (p ? '' : '<span class="hint">Choose or create a project at the top to keep the question and search log together.</span>') + '</label>' +
       '<div class="label">Concepts: synonyms inside a row are joined with OR, rows with AND</div>' +
       '<div class="section" id="concepts">' + S.strategy.concepts.map((c, i) =>
@@ -1283,8 +1484,9 @@ Return JSON: {"concepts":[{"name":"...","terms":["..."]}],"databases":[{"name":"
     const parts = [];
     if (r && r.databases && r.databases.length) parts.push("<b>Databases to consider:</b> " + r.databases.map(d => esc(d.name) + " (" + esc(d.why) + ")").join("; "));
     if (r && r.tips && r.tips.length) parts.push("<b>Tips:</b> " + r.tips.map(esc).join(" "));
-    S.strategy.suggestions = parts.length ? parts.join("<br>") + '<br><span class="muted">Suggestions from Claude. Adjust the terms to your field before running.</span>' : null;
-  } catch (e) { toast(e && e.code === "rate_limited" ? "Claude is busy. Try again in a minute." : "Couldn't build suggestions."); }
+    if (STANDALONE && r && r.concepts && r.concepts.length) { S.strategy.busy = false; S.strategy.open = true; renderFind(); runFound(true); toast(aiName() + " improved your search terms."); }
+    S.strategy.suggestions = parts.length ? parts.join("<br>") + '<br><span class="muted">Suggestions from ' + aiName() + '. Adjust the terms to your field before running.</span>' : null;
+  } catch (e) { aiFail(e, "Couldn't build suggestions."); S.strategy.busy = false; renderFind(); return; }
   S.strategy.busy = false; renderFind();
 }
 async function logSearch(dbName) {
@@ -1295,7 +1497,8 @@ async function logSearch(dbName) {
 
 /* ---------- Live scholarly search (hosted version only: claude.ai artifacts can't reach outside sites) ---------- */
 const STANDALONE = !!window.LRD_STANDALONE;
-const stripTags = t => String(t || "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+const decodeEntities = t => { const d = document.createElement("textarea"); d.innerHTML = t; return d.value; };
+const stripTags = t => decodeEntities(String(t || "").replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
 async function getJSON(url) {
   const r = await fetch(url, { headers: { Accept: "application/json" } });
   if (r.status === 429) throw new Error("The search service is busy. Wait a minute and try again.");
@@ -1374,8 +1577,8 @@ async function runFound(reset) {
   const params = new URLSearchParams({ select: OA_SELECT, "per-page": "20", page: String(F.page) });
   const filters = [];
   if (F.mode === "search") {
-    const q = searchQuery(); if (!q) { toast("Type what you're researching first."); return; }
-    params.set("search", q); F.label = q;
+    const q = F.forceKeywords ? questionKeywords() : searchQuery(); if (!q) { toast("Type what you're researching first."); return; }
+    params.set("search", q.replace(/[*?]/g, "").replace(/[:!\\]/g, " ").replace(/\s+/g, " ").trim()); F.label = q;
   } else filters.push(F.filter);
   if (F.from) filters.push("from_publication_date:" + F.from + "-01-01");
   if (F.to) filters.push("to_publication_date:" + F.to + "-12-31");
@@ -1388,13 +1591,24 @@ async function runFound(reset) {
   try {
     const data = await getJSON("https://api.openalex.org/works?" + params.toString());
     F.total = data.meta ? data.meta.count : 0;
+    if (reset && F.mode === "search" && !F.forceKeywords && !(data.results || []).length && booleanString() && questionKeywords()) {
+      F.forceKeywords = true; F.busy = false; toast("Those search terms found nothing, so here are results for your question's key words.");
+      try { await runFound(true); } finally { F.forceKeywords = false; } return;
+    }
+    F.freshFrom = F.items.length; setTimeout(() => { F.freshFrom = null; }, 60);
     F.items = F.items.concat(data.results || []);
     if (reset && F.mode === "search") {
       const lim = [F.from || F.to ? (F.from || "…") + "–" + (F.to || "now") : "", F.articlesOnly ? "journal articles" : "", F.oaOnly ? "open access" : ""].filter(Boolean).join(", ");
       const d = new Date(); const date = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
       writeDoc("searches", uid("q"), { date, database: "OpenAlex", query: F.label, limits: lim, results: String(F.total), kept: "", projectId: S.project !== "all" ? S.project : "", createdAt: nowIso() }).catch(() => {});
     }
-  } catch (e) { F.error = e.message || "Search failed."; }
+  } catch (e) {
+    if (reset && F.mode === "search" && !F.forceKeywords && booleanString() && questionKeywords() && /answered 400/.test(e.message || "")) {
+      F.forceKeywords = true; F.busy = false; toast("Couldn't run those exact terms here, so here are results for your question's key words.");
+      try { await runFound(true); } finally { F.forceKeywords = false; } return;
+    }
+    F.error = e.message || "Search failed.";
+  }
   F.busy = false; renderFoundOnly();
 }
 async function chase(kind, doi) {
@@ -1422,18 +1636,20 @@ function foundHtml() {
     '<button class="btn primary" type="button" data-act="runfound"' + (F.busy ? " disabled" : "") + '>' + (F.busy && !F.items.length ? "Searching…" : F.mode === "search" ? "Search" : "Refresh") + '</button></div>';
   let body = "";
   if (F.error) body = '<div class="note" style="background:var(--bad-soft)">' + esc(F.error) + '</div>';
-  else if (!F.items.length && !F.busy) body = '<div class="empty"><b>' + (F.label ? "No results" : "Press Search to find papers") + '</b><span>' + (F.label ? "Loosen the filters, or open “Make the search more precise” and use fewer or broader words." : "It searches 250 million scholarly papers for the key words of your question. Tap + Add on the ones worth reading; they go to your Library.") + '</span></div>';
+  else if (!F.items.length && F.busy) body = '<div class="loading"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3"><circle cx="40" cy="60" r="16"/><path d="M40 34v-8M40 94v-8M14 60h-8M74 60h-8M21.6 41.6l-5.7-5.7M58.4 78.4l5.7 5.7M21.6 78.4l-5.7 5.7M58.4 41.6l5.7-5.7"/><g class="small-gear"><circle cx="73" cy="27" r="9"/><path d="M73 12v5M73 37v5M58 27h5M83 27h5"/></g></svg>Consulting the archives…</div>';
+  else if (!F.items.length && !F.busy) body = '<div class="empty"><img class="art" src="assets/search.webp" alt="" onerror="this.remove()"><b>' + (F.label ? "No results" : "Press Search to find papers") + '</b><span>' + (F.label ? "Loosen the filters, or open “Make the search more precise” and use fewer or broader words." : "It searches 250 million scholarly papers for the key words of your question. Tap + Add on the ones worth reading; they go to your Library.") + '</span></div>';
   else {
     body = '<div class="small muted">' + F.total.toLocaleString() + ' results' + (F.mode === "search" ? ' for <span class="mono">' + esc(F.label) + '</span>' : '') + '</div><div class="list">' + F.items.map((w, i) => {
       const r = fromOpenAlex(w); const have = inLibrary(r.doi);
       const au = r.authors.length ? r.authors.slice(0, 3).map(a => a.split(",")[0]).join(", ") + (r.authors.length > 3 ? " et al." : "") : "No author listed";
       const link = r.doi ? "https://doi.org/" + r.doi : r.url;
       const oa = w.open_access && w.open_access.is_oa && w.open_access.oa_url;
-      return '<div class="hit"><div class="hit-main"><a class="hit-title" href="' + esc(link || "#") + '" target="_blank" rel="noopener">' + esc(r.title || "Untitled") + '</a>' +
+      const fresh = F.freshFrom != null && i >= F.freshFrom;
+      return '<div class="hit' + (fresh ? ' fresh" style="--i:' + (i - F.freshFrom) : '') + '"><div class="hit-main"><a class="hit-title" href="' + esc(link || "#") + '" target="_blank" rel="noopener">' + esc(r.title || "Untitled") + '</a>' +
         '<div class="small muted">' + esc(au) + ' · ' + esc(r.year || "n.d.") + (r.container ? ' · <i>' + esc(r.container) + '</i>' : '') + '</div>' +
         '<div class="chips"><span class="chip">Cited by ' + (w.cited_by_count || 0).toLocaleString() + '</span>' + (oa ? '<a class="chip ok" href="' + esc(oa) + '" target="_blank" rel="noopener">Free PDF / full text ↗</a>' : '') + (r.abstract ? '<button type="button" class="chip linkish" data-act="abs" data-i="' + i + '">' + (F.openAbs[i] ? "Hide abstract" : "Abstract") + '</button>' : '') + '</div>' +
         (F.openAbs[i] ? '<p class="abs">' + esc(r.abstract) + '</p>' : '') + '</div>' +
-        '<button type="button" class="btn small' + (have ? '' : ' primary') + '" data-act="addhit" data-i="' + i + '"' + (have ? " disabled" : "") + '>' + (have ? "In library ✓" : "+ Add") + '</button></div>';
+        '' + (have ? '<span class="seal' + (F.justAdded === r.doi ? " now" : "") + '"><i>✓</i>In library</span></div>' : '<button type="button" class="btn small primary" data-act="addhit" data-i="' + i + '">' + "+ Add" + '</button></div>');
     }).join("") + '</div>' +
     (F.items.length < F.total ? '<div class="row" style="justify-content:center"><button class="btn" type="button" data-act="morefound"' + (F.busy ? " disabled" : "") + '>' + (F.busy ? "Loading…" : "Show 20 more") + '</button></div>' : '');
   }
@@ -1447,7 +1663,7 @@ async function addHit(i, btn) {
   if (inLibrary(r.doi)) { renderFoundOnly(); return; }
   r.projectId = S.project !== "all" ? S.project : ""; r.createdAt = nowIso(); r.updatedAt = r.createdAt; r.status = "screen";
   if (looksTitleCase(r.title)) r.title = sentenceCase(r.title);
-  try { await writeDoc("sources", uid("s"), r); toast("Added to Library → To screen"); } catch (e) {}
+  try { S.found.justAdded = r.doi; await writeDoc("sources", uid("s"), r); toast("Added to your Library"); } catch (e) {}
   renderFoundOnly();
 }
 async function doiFill(btn) {
@@ -1509,13 +1725,15 @@ function renderStart() {
   const steps = [
     ["find", "Search", "Turn the question into search terms and run them in Google Scholar, PubMed, ERIC and more.", st && st.searches > 0],
     ["library", "Collect & screen", "Import what you find. Sort it into To screen, Reading, Included, Excluded.", st && st.total > 0],
-    ["library", "Annotate", "Summarize, evaluate, note relevance. Claude can draft from the abstract.", st && st.inc > 0 && st.ann === st.inc],
+    ["library", "Annotate", "Summarize, evaluate, note relevance. " + aiName() + " can draft from the abstract.", st && st.inc > 0 && st.ann === st.inc],
     ["bib", "Export", "Get a finished APA 7 annotated bibliography in Word, ready to hand in.", false]];
-  v.innerHTML = '<div class="hero"><h1>What are you researching?</h1><p>Describe the topic or research question in a sentence. You get a search strategy, a place to collect and screen sources, correct APA 7 citations, and an annotated bibliography at the end.</p>' +
+  v.innerHTML = '<div class="hero"><div class="hero-copy"><span class="kicker">A notebook for literature reviews</span><h1>What are you <em>researching</em>?</h1><p>Describe your topic in a sentence. You get matching papers, correct APA 7 citations, a place to take notes on each source, and a finished annotated bibliography at the end.</p></div>' +
+    '<div class="hero-art"><svg class="orbit" viewBox="0 0 200 200" aria-hidden="true" fill="none" stroke="currentColor" stroke-width=".6"><circle cx="100" cy="100" r="96" stroke-dasharray="1 3"/><circle cx="100" cy="100" r="70"/><rect x="30" y="30" width="140" height="140"/><path d="M100 2v196M2 100h196M30 30l140 140M170 30L30 170"/></svg><img src="assets/hero.webp" alt="" onerror="this.remove()"></div>' +
     '<form class="ask" id="askForm"><textarea id="askQ" rows="3" placeholder="e.g. What interventions reduce burnout among early-career teachers?" aria-label="Research topic or question"></textarea>' +
-    '<div class="row"><span class="small muted">' + (S.sample ? "Claude will suggest search terms and databases." : "Next you'll turn it into search terms and search 250M papers.") + '</span><button class="btn primary" type="submit" id="askGo">Start research →</button></div></form>' +
+    '<div class="row"><span class="small muted">' + (STANDALONE ? "You'll see matching papers right away." + (aiReady() ? " " + aiName() + " will also suggest better search terms." : "") : S.sample ? "Claude will suggest search terms and databases." : "Next you'll turn it into search terms and search 250M papers.") + '</span><button class="btn primary" type="submit" id="askGo">Start research →</button></div></form>' +
     '<div class="examples"><span class="small muted" style="align-self:center">Try:</span>' + EXAMPLE_TOPICS.map(t => '<button type="button" data-topic="' + esc(t) + '">' + esc(t) + '</button>').join("") + '</div></div>' +
-    '<ol class="steps">' + steps.map((x, i) => '<li data-goto="' + x[0] + '" tabindex="0" class="' + (x[3] ? "done" : "") + '"><span class="n">' + (x[3] ? "✓ Done" : "Step " + (i + 1)) + '</span><b>' + x[1] + '</b><span>' + x[2] + '</span></li>').join("") + '</ol>' +
+    '<ol class="steps">' + steps.map((x, i) => '<li data-goto="' + x[0] + '" tabindex="0" class="' + (x[3] ? "done" : "") + '"><span class="n">' + (x[3] ? "✓ Done" : ["I", "II", "III", "IV"][i]) + '</span><img src="' + ["assets/search.webp","assets/library.webp","assets/annotate.webp","assets/export.webp"][i] + '" alt="" loading="lazy" onerror="this.remove()"><b>' + x[1] + '</b><span>' + x[2] + '</span></li>').join("") + '</ol>' +
+    '<img class="divider" src="assets/divider.webp" alt="" onerror="this.remove()">' +
     (projs.length ? '<div class="projects"><div class="label">Your projects</div>' + projs.map(pr => { const k = projStats(pr.id); return '<div class="pcard"><div style="min-width:0"><h3>' + esc(pr.name) + (pr.example ? ' <span class="chip ex">Example</span>' : '') + '</h3>' + (pr.question ? '<div class="q">' + esc(pr.question) + '</div>' : '') + '</div><button class="btn' + (pr.id === S.project ? " primary" : "") + '" type="button" data-open-proj="' + esc(pr.id) + '">' + (pr.id === S.project ? "Continue" : "Open") + '</button><div class="meter"><span><b>' + k.searches + '</b> searches logged</span><span><b>' + k.total + '</b> sources</span><span><b>' + k.inc + '</b> included</span><span><b>' + k.ann + '/' + k.inc + '</b> annotated</span></div></div>'; }).join("") + '</div>' : '') + dataPanelHtml();
 }
 async function startProject(q) {
@@ -1528,8 +1746,8 @@ async function startProject(q) {
   S.strategy = { concepts: [{ name: "", terms: "" }, { name: "", terms: "" }], suggestions: null, busy: false };
   S.tab = "find"; showTab(); renderAll();
   window.scrollTo(0, 0);
-  if (S.sample) setTimeout(() => suggestStrategy(), 50);
-  else if (STANDALONE) { Object.assign(S.found, { mode: "search", filter: "", items: [], total: 0, label: "" }); renderFind(); runFound(true); }
+  if (S.sample && !STANDALONE) setTimeout(() => suggestStrategy(), 50);
+  else if (STANDALONE) { if (aiReady()) setTimeout(() => suggestStrategy(), 50); Object.assign(S.found, { mode: "search", filter: "", items: [], total: 0, label: "" }); renderFind(); runFound(true); }
 }
 
 /* ---------- Bibliography ---------- */
@@ -1547,7 +1765,7 @@ function renderBib() {
   const v = $("#view-bib"); const { list, letters } = bibList();
   const missing = S.bib.annotations ? list.filter(s => !annParas(s).length).length : 0;
   const issues = list.filter(s => warnCount(s) > 0).length;
-  v.innerHTML = '<div class="bibbar">' +
+  v.innerHTML = '<div class="view-head"><img src="assets/export.webp" alt="" onerror="this.remove()"><div><h2>Your bibliography</h2><span class="small muted">Everything you marked as included, formatted in APA 7 and ready to hand in.</span></div></div><div class="bibbar">' +
     '<fieldset><legend class="label">Include</legend>' + STATUSES.map(([k, l]) => '<label><input type="checkbox" data-bibst="' + k + '"' + (S.bib.statuses[k] ? " checked" : "") + '> ' + l + '</label>').join("") + '</fieldset>' +
     '<fieldset><legend class="label">Format</legend><label><input type="checkbox" id="bibAnn"' + (S.bib.annotations ? " checked" : "") + '> Annotations</label>' +
       '<select id="bibLayout" aria-label="Annotation layout"' + (S.bib.annotations ? "" : " disabled") + '><option value="combined"' + (S.bib.layout === "combined" ? " selected" : "") + '>One paragraph per source</option><option value="split"' + (S.bib.layout === "split" ? " selected" : "") + '>Separate paragraphs</option></select></fieldset>' +
@@ -1556,7 +1774,7 @@ function renderBib() {
     '<div class="row" style="justify-content:space-between;margin-bottom:12px;gap:12px">' +
       '<span class="small muted">' + list.length + ' source' + (list.length === 1 ? "" : "s") + (S.project !== "all" ? " in " + esc(projName(S.project)) : "") + '. ' +
         (issues ? '<b style="color:var(--warn)">' + issues + ' with APA issues</b> (fix them in the Library). ' : '') + (missing ? missing + ' without an annotation yet.' : '') + '</span>' +
-      '<div class="exports"><button class="btn" type="button" data-act="copybib"' + (list.length ? "" : " disabled") + '>Copy formatted</button><button class="btn primary" type="button" data-act="docx"' + (list.length ? "" : " disabled") + '>Download Word (.docx)</button>' +
+      '<div class="exports">' + (S.sample ? '<button class="btn" type="button" data-act="synth"' + (list.length > 1 ? "" : " disabled") + '><span class="spark">' + aiName() + '</span> Synthesize themes</button>' : '') + '<button class="btn" type="button" data-act="copybib"' + (list.length ? "" : " disabled") + '>Copy formatted</button><button class="btn primary" type="button" data-act="docx"' + (list.length ? "" : " disabled") + '>Download Word (.docx)</button>' +
       '<select id="moreExport" aria-label="More export formats"' + (list.length ? "" : " disabled") + '><option value="">More formats…</option><option value="csv">Spreadsheet / evidence table (.csv)</option><option value="ris">RIS for Zotero, EndNote, Mendeley (.txt)</option><option value="bib">BibTeX (.txt)</option></select></div>' +
     '</div>' +
     '<div class="paperwrap"><div class="paper" id="paper"><h1>' + esc(bibTitle()) + '</h1>' +
@@ -1585,6 +1803,7 @@ async function exportBib(kind) {
 function showTab() {
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === S.tab)));
   ["start", "library", "find", "bib", "guide"].forEach(t => $("#view-" + t).hidden = S.tab !== t);
+  if (showTab.last !== S.tab) { const v = $("#view-" + S.tab); v.classList.remove("entering"); void v.offsetWidth; v.classList.add("entering"); clearTimeout(showTab.t); showTab.t = setTimeout(() => v.classList.remove("entering"), 900); showTab.last = S.tab; }
   document.body.style.overflow = (S.draft && S.tab === "library" && window.matchMedia("(max-width:1000px)").matches) ? "hidden" : "";
   try { if (location.hash.slice(1) !== S.tab) history.replaceState(null, "", "#" + S.tab); } catch (e) {}
 }
@@ -1661,6 +1880,8 @@ document.addEventListener("click", async e => {
       saveFile("search-log.csv", csv); break;
     }
     case "copybib": exportBib("copy"); break;
+    case "synth": synthesize(a); break;
+    case "aisettings": openAISettings(); break;
     case "docx": exportBib("docx"); break;
   }
 });
@@ -1706,6 +1927,13 @@ document.addEventListener("change", async e => {
   if (t.id === "restoreFile") { const f = t.files && t.files[0]; t.value = ""; if (f) restoreData(f); return; }
   if (t.id === "moreExport") { const v = t.value; t.value = ""; if (v) exportBib(v); return; }
 });
+document.addEventListener("pointerdown", e => {
+  const b = e.target.closest(".btn, nav.tabs button, .steps li"); if (!b || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2.2, ink = document.createElement("span");
+  ink.className = "ink"; ink.style.cssText = "width:" + d + "px;height:" + d + "px;left:" + (e.clientX - r.left - d / 2) + "px;top:" + (e.clientY - r.top - d / 2) + "px";
+  if (getComputedStyle(b).position === "static") b.style.position = "relative"; b.style.overflow = "hidden";
+  b.appendChild(ink); setTimeout(() => ink.remove(), 650);
+});
 document.addEventListener("toggle", e => { if (e.target.classList && e.target.classList.contains("refine")) S.strategy.open = e.target.open; }, true);
 document.addEventListener("submit", e => { if (e.target.id === "askForm") { e.preventDefault(); startProject($("#askQ").value); } });
 document.addEventListener("keydown", e => {
@@ -1737,7 +1965,7 @@ $("#list").innerHTML = '<div class="empty"><b>Loading your library…</b></div>'
   const c = window.claude;
   if (!c || !c.use) { setBanner("Running outside claude.ai: changes stay in this tab only and are lost on reload."); renderAll(); return; }
   const [db, sample, downloads] = await Promise.all([c.use("db"), c.use("sample"), c.use("downloads")]);
-  S.sample = sample; S.downloads = downloads;
+  S.sample = sample; S.downloads = downloads; renderHeaderAI();
   if (!db) { setBanner("Sign in on claude.ai to save your library. For now, changes stay in this tab only."); renderAll(); return; }
   S.db = db; S.live = true;
   subscribe("sources"); subscribe("projects"); subscribe("searches");

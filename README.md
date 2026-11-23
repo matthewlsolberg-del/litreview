@@ -10,11 +10,14 @@ A free tool for literature searches and APA 7th edition annotated bibliographies
 4. **APA 7.** Every source gets a checked reference and parenthetical and narrative in-text citations, with warnings for missing details and title-case mistakes.
 5. **Export** the annotated bibliography to Word (Times New Roman 12, double-spaced, hanging indents), or to CSV, RIS or BibTeX.
 
+**AI assistant (optional).** Tap **Connect AI** and paste a key for **Gemini** (free key from aistudio.google.com/apikey) or **ChatGPT** (OpenAI API key with credit). The AI then suggests better search terms, drafts annotations from abstracts, reads pasted references, and synthesizes themes across your sources. Your key stays in your browser and is sent only to Google or OpenAI.
+
 Your library is stored in your browser on each device. Use **Download backup** and **Restore** on the Start screen to keep a copy or move to another device.
 
 ## Development
 
 - `src/page.html` is the app. The same file is published as a claude.ai artifact, where it also uses Claude to draft annotations and search terms.
-- `src/local-runtime.js` stands in for the claude.ai runtime here: localStorage storage, direct downloads.
+- `src/local-runtime.js` stands in for the claude.ai runtime here: localStorage storage, direct downloads, and AI calls to Gemini or OpenAI with the user's own key.
+- `assets/` holds the notebook-style illustrations.
 - After editing anything in `src/`, run `node src/build.mjs` and commit the regenerated `index.html` and copied files.
 - `node src/icons.cjs` re-renders the PNG icons from `src/icon.svg` (needs Playwright).

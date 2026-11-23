@@ -14,7 +14,7 @@ const head = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Plan literature searches, collect and screen sources, get correct APA 7 citations, and export an annotated bibliography to Word.">
-<meta name="theme-color" content="#2B4C9B">
+<meta name="theme-color" content="#9A3D21">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Lit Review">
