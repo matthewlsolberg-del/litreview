@@ -228,6 +228,11 @@ a.chip{text-decoration:none}
 .cands{display:flex;flex-direction:column;gap:8px}
 .cand{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:8px 10px}
 @media (max-width:560px){.hit{grid-template-columns:minmax(0,1fr)}.hit .btn{justify-self:start}}
+.refine{margin-top:16px}
+.refine > summary{cursor:pointer;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);list-style:none;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.refine > summary::before{content:"+";font-weight:600;color:var(--accent);width:12px}
+.refine[open] > summary{margin-bottom:12px}
+.refine[open] > summary::before{content:"–"}
 /* APA guide */
 .guide{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
 .guide .card h3{font-size:15px}
@@ -1230,11 +1235,18 @@ function booleanString() {
   return S.strategy.concepts.map(c => c.terms.split(/[,;\n]/).map(termFmt).filter(Boolean)).filter(a => a.length).map(a => a.length > 1 ? "(" + a.join(" OR ") + ")" : a[0]).join(" AND ");
 }
 function currentProject() { return S.projects.find(p => p.id === S.project); }
+const STOP = new Set("a an the of in on at to for from with without by about among between and or but is are was were be been do does did how what which who whom why when where whether can could should would will may might effect effects affect affects impact impacts influence role relationship use using study studies research".split(" "));
+function questionKeywords() {
+  const p = currentProject(); const q = (p ? p.question : ($("#rq") && $("#rq").value) || S.strategy.question || "");
+  return String(q).toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, " ").split(/\s+/).filter(w => w.length > 1 && !STOP.has(w)).join(" ");
+}
+const searchQuery = () => booleanString() || questionKeywords();
 function renderFind() {
   const v = $("#view-find"); const p = currentProject();
-  const q = booleanString();
+  const q = searchQuery();
   const logs = S.searches.filter(x => S.project === "all" || x.projectId === S.project).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  v.innerHTML = '<div class="cols">' +
+  v.innerHTML = (STANDALONE ? '<div class="card" id="found">' + foundHtml() + '</div><details class="refine"' + (S.strategy.open ? " open" : "") + '><summary><b>Make the search more precise</b> <span class="small muted">(optional) Add synonyms and other databases</span></summary>' : '') +
+    '<div class="cols">' +
     '<div class="card">' +
       '<div class="row" style="justify-content:space-between"><h2>Search strategy</h2>' + (S.sample ? '<button class="btn" type="button" data-act="strategy"' + (S.strategy.busy ? " disabled" : "") + '><span class="spark">Claude</span> ' + (S.strategy.busy ? "Thinking…" : "Suggest concepts &amp; synonyms") + '</button>' : '') + '</div>' +
       '<label class="f" for="rq"><span>Research question' + (p ? ' (saved with ' + esc(p.name) + ')' : '') + '</span><textarea id="rq" rows="2" placeholder="e.g. What interventions reduce burnout among early-career K–12 teachers?">' + esc(p ? p.question : (S.strategy.question || "")) + '</textarea>' + (p ? '' : '<span class="hint">Choose or create a project at the top to keep the question and search log together.</span>') + '</label>' +
@@ -1242,6 +1254,7 @@ function renderFind() {
       '<div class="section" id="concepts">' + S.strategy.concepts.map((c, i) =>
         '<div class="concept"><input data-ci="' + i + '" data-cf="name" value="' + esc(c.name) + '" placeholder="Concept ' + (i + 1) + '" aria-label="Concept name"><input class="terms" data-ci="' + i + '" data-cf="terms" value="' + esc(c.terms) + '" placeholder="Synonyms, comma separated: burnout, emotional exhaustion, teacher stress" aria-label="Search terms"><button class="btn small ghost" type="button" data-act="rmconcept" data-i="' + i + '" aria-label="Remove concept">Remove</button></div>').join("") +
       '</div><div class="row"><button class="btn small" type="button" data-act="addconcept">Add concept</button><span class="small muted">Tip: use * for word endings (teach* finds teacher, teaching) in databases that support it.</span></div>' +
+      (STANDALONE ? '<div class="small muted">Right now the search uses the key words of your question. For better results, list each idea in your question with its synonyms. Words in one row are searched with OR, rows are combined with AND. Then press Search above.</div>' : '') +
       '<div class="label">Search string</div><div class="boolean" id="boolOut">' + (q ? esc(q) : '<span class="muted">Fill in the concepts to build the string.</span>') + '</div>' +
       '<div class="row"><button class="btn small" type="button" data-act="copybool"' + (q ? "" : " disabled") + '>Copy search string</button></div>' +
       (S.strategy.suggestions ? '<div class="suggest note">' + S.strategy.suggestions + '</div>' : '') +
@@ -1249,8 +1262,7 @@ function renderFind() {
     '<div class="card"><h2>' + (STANDALONE ? "Also search" : "Run it") + '</h2><span class="small muted">' + (STANDALONE ? "Results from OpenAlex appear below. To cover more ground, open the same string in these databases (new tab) and log each run." : "Each link opens the database with your search string in a new tab. Log each run so the search can be reported and repeated.") + '</span>' +
       '<div class="dbs">' + DBS.map((d, i) => '<div class="db"><a href="' + (q ? esc(d.url(q)) : "#") + '" target="_blank" rel="noopener"' + (q ? '' : ' aria-disabled="true"') + '>' + esc(d.name) + ' ↗</a><span class="small muted">' + esc(d.note) + '</span><button class="btn small" type="button" data-act="logsearch" data-i="' + i + '"' + (q ? "" : " disabled") + '>Log this search</button></div>').join("") + '</div>' +
       '<div class="note">After screening a result list, bring the keepers in through <b>Library → Import</b>. Look at the reference lists of your best sources too (backward citation chasing) and their “Cited by” lists in Google Scholar (forward).</div>' +
-    '</div></div>' +
-    (STANDALONE ? '<div class="card" id="found" style="margin-top:16px">' + foundHtml() + '</div>' : '') +
+    '</div></div>' + (STANDALONE ? '</details>' : '') +
     '<div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between"><h2>Search log</h2><div class="row"><button class="btn small" type="button" data-act="addlog">Add entry</button><button class="btn small" type="button" data-act="exportlog"' + (logs.length ? "" : " disabled") + '>Export log (.csv)</button></div></div>' +
       '<span class="small muted">Record date, database, exact string, limits and hit counts. Supervisors and PRISMA-style methods sections ask for exactly this.</span>' +
       (logs.length ? '<div class="tablewrap loglist"><table><thead><tr><th>Date</th><th>Database</th><th>Search string</th><th>Limits / filters</th><th>Results</th><th>Kept</th><th></th></tr></thead><tbody>' + logs.map(l =>
@@ -1362,7 +1374,7 @@ async function runFound(reset) {
   const params = new URLSearchParams({ select: OA_SELECT, "per-page": "20", page: String(F.page) });
   const filters = [];
   if (F.mode === "search") {
-    const q = booleanString(); if (!q) { toast("Fill in at least one concept first."); return; }
+    const q = searchQuery(); if (!q) { toast("Type what you're researching first."); return; }
     params.set("search", q); F.label = q;
   } else filters.push(F.filter);
   if (F.from) filters.push("from_publication_date:" + F.from + "-01-01");
@@ -1398,7 +1410,8 @@ async function chase(kind, doi) {
 }
 function foundHtml() {
   const F = S.found;
-  const head = '<div class="row" style="justify-content:space-between;gap:8px"><h2>' + (F.mode === "search" ? "Results" : esc(F.label)) + '</h2>' +
+  const pq = currentProject();
+  const head = '<div class="row" style="justify-content:space-between;gap:8px"><h2>' + (F.mode === "search" ? "Papers" + (pq ? " on " + esc(pq.name) : "") : esc(F.label)) + '</h2>' +
     (F.mode !== "search" ? '<button class="btn small ghost" type="button" data-act="foundback">Back to my search</button>' : '') + '</div>';
   const controls = '<div class="row small">' +
     '<label class="row" style="gap:4px">From <input id="fFrom" inputmode="numeric" value="' + esc(F.from) + '" placeholder="year" style="width:72px"></label>' +
@@ -1409,7 +1422,7 @@ function foundHtml() {
     '<button class="btn primary" type="button" data-act="runfound"' + (F.busy ? " disabled" : "") + '>' + (F.busy && !F.items.length ? "Searching…" : F.mode === "search" ? "Search" : "Refresh") + '</button></div>';
   let body = "";
   if (F.error) body = '<div class="note" style="background:var(--bad-soft)">' + esc(F.error) + '</div>';
-  else if (!F.items.length && !F.busy) body = '<div class="empty"><b>' + (F.label ? "No results" : "Run your search here") + '</b><span>' + (F.label ? "Loosen the filters or use fewer concepts." : "Results come from OpenAlex, an open index of 250 million scholarly works. The search is logged for you automatically.") + '</span></div>';
+  else if (!F.items.length && !F.busy) body = '<div class="empty"><b>' + (F.label ? "No results" : "Press Search to find papers") + '</b><span>' + (F.label ? "Loosen the filters, or open “Make the search more precise” and use fewer or broader words." : "It searches 250 million scholarly papers for the key words of your question. Tap + Add on the ones worth reading; they go to your Library.") + '</span></div>';
   else {
     body = '<div class="small muted">' + F.total.toLocaleString() + ' results' + (F.mode === "search" ? ' for <span class="mono">' + esc(F.label) + '</span>' : '') + '</div><div class="list">' + F.items.map((w, i) => {
       const r = fromOpenAlex(w); const have = inLibrary(r.doi);
@@ -1516,6 +1529,7 @@ async function startProject(q) {
   S.tab = "find"; showTab(); renderAll();
   window.scrollTo(0, 0);
   if (S.sample) setTimeout(() => suggestStrategy(), 50);
+  else if (STANDALONE) { Object.assign(S.found, { mode: "search", filter: "", items: [], total: 0, label: "" }); renderFind(); runFound(true); }
 }
 
 /* ---------- Bibliography ---------- */
@@ -1663,7 +1677,7 @@ document.addEventListener("input", e => {
     return;
   }
   if (t.dataset.quote != null && S.draft) { S.draft.quotes[+t.dataset.quote][t.dataset.qf] = t.value; S.dirty = true; renderLive(); return; }
-  if (t.dataset.ci != null) { S.strategy.concepts[+t.dataset.ci][t.dataset.cf] = t.value; const q = booleanString(); const out = $("#boolOut"); if (out) out.innerHTML = q ? esc(q) : '<span class="muted">Fill in the concepts to build the string.</span>'; return; }
+  if (t.dataset.ci != null) { S.strategy.concepts[+t.dataset.ci][t.dataset.cf] = t.value; const q = booleanString(); const out = $("#boolOut"); if (out) out.innerHTML = q ? esc(q) : '<span class="muted">Fill in the concepts to build the string.</span>'; S.strategy.open = true; return; }
   if (t.id === "bibTitleIn") { S.bib.title = t.value; const h = $("#paper h1"); if (h) h.textContent = bibTitle(); return; }
 });
 document.addEventListener("change", async e => {
@@ -1692,6 +1706,7 @@ document.addEventListener("change", async e => {
   if (t.id === "restoreFile") { const f = t.files && t.files[0]; t.value = ""; if (f) restoreData(f); return; }
   if (t.id === "moreExport") { const v = t.value; t.value = ""; if (v) exportBib(v); return; }
 });
+document.addEventListener("toggle", e => { if (e.target.classList && e.target.classList.contains("refine")) S.strategy.open = e.target.open; }, true);
 document.addEventListener("submit", e => { if (e.target.id === "askForm") { e.preventDefault(); startProject($("#askQ").value); } });
 document.addEventListener("keydown", e => {
   if (e.target.id === "askQ" && e.key === "Enter" && !e.shiftKey) { e.preventDefault(); startProject(e.target.value); return; }
