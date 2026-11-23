@@ -59,7 +59,9 @@
   /* AI assistant: the user's own Gemini or OpenAI key, kept in this browser and sent only to that provider. */
   var AI_KEY = "lrd.ai";
   var AI_DEFAULTS = { gemini: "gemini-flash-latest", openai: "gpt-5.4-mini" };
-  function aiCfg() { try { return JSON.parse(localStorage.getItem(AI_KEY) || "null"); } catch (e) { return null; } }
+  function userCfg() { try { return JSON.parse(localStorage.getItem(AI_KEY) || "null"); } catch (e) { return null; } }
+  function builtinCfg() { var c = window.LRD_CONFIG || {}; return c.geminiKey ? { provider: "gemini", key: c.geminiKey, model: c.geminiModel || AI_DEFAULTS.gemini, builtin: true } : null; }
+  function aiCfg() { var u = userCfg(); return (u && u.key) ? u : builtinCfg(); }
   function aiErr(code, message) { var e = new Error(message); e.code = code; return e; }
   function toText(input) {
     if (typeof input === "string") return input;
@@ -102,7 +104,8 @@
   var sample = async function (input, opts) { var t = await callAI(input, false); if (opts && opts.onText) try { opts.onText({ text: t, delta: t }); } catch (e) {} return { text: t, truncated: false }; };
   sample.json = async function (input) { return parseJSON(await callAI(input, true)); };
   sample.configured = function () { var c = aiCfg(); return !!(c && c.key); };
-  sample.config = function () { var c = aiCfg(); return c ? { provider: c.provider, model: c.model || AI_DEFAULTS[c.provider] } : null; };
+  sample.config = function () { var c = aiCfg(); return c ? { provider: c.provider, model: c.model || AI_DEFAULTS[c.provider], builtin: !!c.builtin } : null; };
+  sample.hasOwnKey = function () { var u = userCfg(); return !!(u && u.key); };
   sample.label = function () { var c = aiCfg(); return c && c.key ? (c.provider === "openai" ? "ChatGPT" : "Gemini") : "AI"; };
   sample.defaults = AI_DEFAULTS;
   sample.save = async function (cfg) {
