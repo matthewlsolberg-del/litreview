@@ -251,6 +251,23 @@ a.chip{text-decoration:none}
 .synth{max-height:60vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--paper);color:var(--paper-ink);font-family:var(--f-doc);font-size:15px;line-height:1.55}
 .synth p{margin:0 0 .8em}
 @media (max-width:560px){.provs{grid-template-columns:minmax(0,1fr)}}
+.libtools{margin-bottom:10px;gap:6px}
+.extract{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.extract .f{grid-column:auto}
+.loc{font-family:var(--f-label);color:var(--accent);font-weight:400}
+.claim{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:start;padding:6px 0;border-top:1px dashed var(--line)}
+.claim .chip{white-space:nowrap;margin-top:2px}
+.claim-q{font-family:var(--f-doc);font-size:13.5px;color:var(--muted);margin-top:2px}
+.suggest-box{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;padding:10px 12px;border-radius:8px;border:1px dashed var(--accent);background:var(--accent-soft)}
+.suggest-box.exclude{border-color:var(--bad);background:var(--bad-soft)}
+.suggest-box.include{border-color:var(--ok);background:var(--ok-soft)}
+.report{margin:16px auto 0;max-width:1080px}
+table.ev td{font-size:12.5px;min-width:150px}
+table.ev td:first-child{min-width:120px;font-weight:600}
+table.ev .loc{font-size:12px}
+.prisma{overflow-x:auto;border-radius:6px}
+.prisma svg{min-width:520px;display:block}
+@media (max-width:560px){.extract{grid-template-columns:minmax(0,1fr)}}
 /* APA guide */
 .guide{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
 .guide .card h3{font-size:15px}
@@ -405,7 +422,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
   .brand b{font-size:22px}
   .brand .gear{width:26px;height:26px}
   nav.tabs{background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-  nav.tabs button{font-size:14px}
+  nav.tabs button{font-size:13px;padding-inline:2px;letter-spacing:.02em}
   .view-head img{height:60px}
   .hero-art{height:180px}
 }
@@ -449,6 +466,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
           <button class="btn" type="button" id="importBtn">Import</button>
           <button class="btn primary" type="button" id="addBtn">Add source</button>
         </div>
+        <div class="row libtools" id="libTools" hidden><button class="btn small" type="button" data-act="aiscreen"><span class="spark">AI</span> Suggest screening decisions</button><button class="btn small" type="button" data-act="retract">Check for retractions</button><button class="btn small" type="button" data-act="snowball">Find papers your sources cite</button></div>
         <div class="stats" id="stats"></div>
         <div class="seg" id="statusSeg"></div>
         <div class="list" id="list"></div>
@@ -786,6 +804,7 @@ function checks(s) {
   if (doi && !/^10\.\d{4,9}\/\S+$/.test(doi)) W("DOI doesn't look right. It should start with 10. and contain a slash.");
   if (!doi && ["article","chapter","book","report"].includes(type)) I("No DOI. Add one if the source has it (look it up at search.crossref.org); APA formats it as https://doi.org/…");
   if (doi && s.url) I("Both DOI and URL are filled in. APA uses the DOI, so the URL is left out of the reference.");
+  if (s.retracted) out.unshift({ level: "warn", text: "RETRACTED: this paper has been retracted by its publisher. Don't rely on it; if you cite it, say it was retracted." });
   const dup = S.sources.find(o => o.id !== s.id && ((doi && normDoi(o.doi).toLowerCase() === doi.toLowerCase()) || (s.title && stripArticle(o.title) === stripArticle(s.title))));
   if (dup) W("Possible duplicate: this matches another source in the library with the same " + (doi && normDoi(dup.doi).toLowerCase() === doi.toLowerCase() ? "DOI." : "title."));
   return out;
@@ -1077,6 +1096,10 @@ function renderLibrary() {
         '<span class="ref">' + segsHtml(refSegs(s, letters[s.id])) + '</span>' +
         '<span class="chips"><span class="chip ' + ({ include: "ok", reading: "warn", exclude: "bad" }[st] || "") + '">' + STATUS_LABEL[st] + '</span>' +
         (w ? '<span class="chip warn">' + w + ' APA ' + (w === 1 ? "issue" : "issues") + '</span>' : '<span class="chip ok">APA ✓</span>') +
+        (s.retracted ? '<span class="chip bad">Retracted</span>' : '') +
+        (s.aiScreen && st === "screen" ? '<span class="chip warn">' + esc(aiName()) + ': ' + ({ include: "read it", exclude: "exclude", unsure: "unsure" }[s.aiScreen.decision]) + '</span>' : '') +
+        (s.hasFullText ? '<span class="chip">Full text</span>' : '') +
+        (s.aiDraft && !s.reviewed ? '<span class="chip warn">Unreviewed draft</span>' : '') +
         (annotated ? '<span class="chip acc">Annotated</span>' : '') +
         (S.project === "all" && s.projectId ? '<span class="chip">' + esc(projName(s.projectId)) + '</span>' : '') +
         (s.example ? '<span class="chip ex">Example</span>' : '') +
@@ -1141,18 +1164,19 @@ function renderEditor(focusId) {
       '<div class="section"><div class="label">Reference preview</div><div class="preview" id="pv"></div><div class="cites" id="cites"></div></div>' +
       '<div class="section"><div class="label"><span>APA check</span></div><ul class="checks" id="checks"></ul></div>' +
       '<div class="section"><div class="label">Citation details</div><div class="grid">' + FIELD_DEFS.map(d => fieldHtml(d, s)).join("") + '</div></div>' +
-      '<div class="section"><div class="label">Screening</div><div class="grid">' +
+      '<div class="section"><div class="label">Screening</div>' + screenSuggestionHtml(s) + '<div class="grid">' +
         '<label class="f s3" for="fld-status"><span>Status</span><select id="fld-status" data-field="status">' + STATUSES.map(([k, l]) => '<option value="' + k + '"' + ((s.status || "screen") === k ? " selected" : "") + '>' + l + '</option>').join("") + '</select></label>' +
         '<label class="f s3" for="fld-project"><span>Project</span><select id="fld-project" data-field="projectId"><option value="">No project</option>' + S.projects.map(p => '<option value="' + esc(p.id) + '"' + (s.projectId === p.id ? " selected" : "") + '>' + esc(p.name) + '</option>').join("") + '</select></label>' +
         ((s.status === "exclude") ? '<label class="f" for="fld-exclusionReason"><span>Reason for exclusion</span><input id="fld-exclusionReason" data-field="exclusionReason" value="' + esc(s.exclusionReason) + '" placeholder="e.g. Wrong population; not peer reviewed; before 2010"></label>' : "") +
         '<label class="f" for="fld-tags"><span>Tags</span><input id="fld-tags" data-field="tags" value="' + esc((s.tags || []).join(", ")) + '" placeholder="Comma separated, e.g. qualitative, adolescents, theme 2"></label>' +
       '</div></div>' +
       '<div class="section"><div class="label">Abstract</div><textarea id="fld-abstract" data-field="abstract" rows="4" placeholder="Paste the abstract. The AI uses it to draft the annotation.">' + esc(s.abstract) + '</textarea></div>' +
+      fullTextSectionHtml(s) +
       '<div class="section"><div class="label"><span>Annotation</span><button type="button" class="btn small needs-sample" data-act="draft"' + (S.sample ? "" : " hidden") + '><span class="spark">' + aiName() + '</span> Draft from abstract &amp; notes</button></div>' +
         '<label class="f" for="fld-summary"><span>Summary: purpose, method, sample, key findings</span><textarea id="fld-summary" data-field="summary" rows="4">' + esc(s.summary) + '</textarea></label>' +
         '<label class="f" for="fld-evaluation"><span>Evaluation: strengths, limitations, credibility</span><textarea id="fld-evaluation" data-field="evaluation" rows="3">' + esc(s.evaluation) + '</textarea></label>' +
         '<label class="f" for="fld-relevance"><span>Relevance: how it serves the research question</span><textarea id="fld-relevance" data-field="relevance" rows="2">' + esc(s.relevance) + '</textarea></label>' +
-        '<div class="small muted" id="annCount"></div>' +
+        '<div class="small muted" id="annCount"></div>' + annotationExtrasHtml(s) +
       '</div>' +
       (STANDALONE && normDoi(s.doi) ? '<div class="section"><div class="label">Citation chasing</div><div class="row"><button type="button" class="btn small" data-act="chase" data-kind="citedby">Papers that cite this →</button><button type="button" class="btn small" data-act="chase" data-kind="refs">Its reference list →</button></div><span class="small muted">The fastest way to find more relevant work once you have a few good sources.</span></div>' : '') +
       '<div class="section"><div class="label"><span>Key quotes</span><button type="button" class="btn small" data-act="addquote">Add quote</button></div><div id="quotes" class="section"></div></div>' +
@@ -1160,7 +1184,7 @@ function renderEditor(focusId) {
       (isNew ? "" : '<div class="row"><button type="button" class="btn small danger" data-act="delete">Delete source</button><span id="delConfirm"></span></div>') +
     '</div>' +
     '<div class="editor-foot"><span class="state" id="saveState"></span><button type="button" class="btn" data-act="close" id="closeBtn">Close</button><button type="button" class="btn primary" data-act="save">Save</button></div>';
-  renderQuotes(); renderLive();
+  renderQuotes(); renderLive(); renderCheck();
   const nb = ed.querySelector(".editor-body"); if (nb && S.editingId === renderEditor.lastId) nb.scrollTop = keepScroll;
   renderEditor.lastId = S.editingId;
   const f = focusId ? $("#" + focusId) : keepFocus ? $("#" + keepFocus.id) : null;
@@ -1299,7 +1323,7 @@ Sources:
 ${lines}`;
   btn.disabled = true; const old = btn.innerHTML; btn.textContent = "Synthesizing…";
   try {
-    const r = await S.sample(prompt, { modelTier: "default", cache: false });
+    const r = await S.sample(prompt, { modelTier: "default", cache: false }); noteAI("synth");
     const text = String(r.text || "").replace(/\*\*/g, "").replace(/^#+\s*/gm, "");
     $("#modalRoot").innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="synT"><div class="box wide"><h2 id="synT">Synthesis of ' + list.length + ' sources</h2><p class="small muted" style="margin:0">Drafted by ' + esc(aiName()) + ' from your notes. Check every claim against the sources before you use it.</p><div class="synth">' + text.split(/\n{2,}/).map(par => '<p>' + esc(par).replace(/\n/g, "<br>") + '</p>').join("") + '</div><div class="row" style="justify-content:flex-end"><button class="btn" type="button" id="synCopy">Copy</button><button class="btn primary" type="button" data-act="modalclose">Done</button></div></div></div>';
     $("#synCopy").onclick = () => copyText(text);
@@ -1308,7 +1332,8 @@ ${lines}`;
 }
 async function draftAnnotation(btn) {
   const s = S.draft; if (!S.sample) return;
-  if (!s.abstract && !s.notes && !(s.quotes || []).length) { toast("Paste the abstract (or add notes) first, so the draft is based on the source."); $("#fld-abstract")?.focus(); return; }
+  const ftD = STANDALONE ? await loadFT(s.id) : null;
+  if (!ftD && !s.abstract && !s.notes && !(s.quotes || []).length) { toast("Paste the abstract (or add notes) first, so the draft is based on the source."); $("#fld-abstract")?.focus(); return; }
   const filled = ["summary", "evaluation", "relevance"].filter(k => String(s[k] || "").trim());
   if (filled.length === 3 && !btn.dataset.armed) { btn.dataset.armed = "1"; btn.innerHTML = "Replace your text? Click again"; setTimeout(() => { if (btn.isConnected) { delete btn.dataset.armed; btn.innerHTML = '<span class="spark">' + aiName() + '</span> Draft from abstract &amp; notes'; } }, 4000); return; }
   const onlyEmpty = filled.length > 0 && filled.length < 3;
@@ -1326,12 +1351,13 @@ Return JSON with three string fields:
 Reference: ${segsText(refSegs(s, L))}
 ${proj && proj.question ? "Research question: " + proj.question + "\n" : ""}Abstract: ${s.abstract || "(none)"}
 Reader's notes: ${s.notes || "(none)"}
-Quotes the reader saved: ${(s.quotes || []).map(q => '"' + q.text + '" (p. ' + q.page + ')').join(" ") || "(none)"}`;
+Quotes the reader saved: ${(s.quotes || []).map(q => '"' + q.text + '" (p. ' + q.page + ')').join(" ") || "(none)"}${ftD ? "\nStudy details already extracted: " + JSON.stringify(s.extract || {}) + "\nFULL TEXT OF THE PAPER (use it for specifics such as design, sample and findings; still state only what it says):\n" + ftString(ftD, 150000) : ""}`;
   try {
     const r = await S.sample.json(prompt, { modelTier: "default" });
     if (r && typeof r === "object") {
       ["summary", "evaluation", "relevance"].forEach(k => { if (r[k] && !(onlyEmpty && String(s[k] || "").trim())) { S.draft[k] = String(r[k]).trim(); const el = $("#fld-" + k); if (el) el.value = S.draft[k]; } });
-      S.dirty = true; renderLive(); toast("Draft added. Check it against the full text before you save.");
+      S.draft.aiDraft = true; S.draft.reviewed = false; noteAI("draft", s.projectId);
+      S.dirty = true; renderEditor(); toast("Draft added. Use “Check against the paper”, edit it in your own words, then tick reviewed.");
     }
   } catch (e) { aiFail(e, "Couldn't draft the annotation."); }
   finally { btn.disabled = false; delete btn.dataset.armed; btn.innerHTML = '<span class="spark">' + aiName() + '</span> Draft from abstract &amp; notes'; }
@@ -1484,6 +1510,7 @@ Return JSON: {"concepts":[{"name":"...","terms":["..."]}],"databases":[{"name":"
     const parts = [];
     if (r && r.databases && r.databases.length) parts.push("<b>Databases to consider:</b> " + r.databases.map(d => esc(d.name) + " (" + esc(d.why) + ")").join("; "));
     if (r && r.tips && r.tips.length) parts.push("<b>Tips:</b> " + r.tips.map(esc).join(" "));
+    if (r && r.concepts && r.concepts.length) noteAI("strategy");
     if (STANDALONE && r && r.concepts && r.concepts.length) { S.strategy.busy = false; S.strategy.open = true; renderFind(); runFound(true); toast(aiName() + " improved your search terms."); }
     S.strategy.suggestions = parts.length ? parts.join("<br>") + '<br><span class="muted">Suggestions from ' + aiName() + '. Adjust the terms to your field before running.</span>' : null;
   } catch (e) { aiFail(e, "Couldn't build suggestions."); S.strategy.busy = false; renderFind(); return; }
@@ -1506,7 +1533,7 @@ async function getJSON(url) {
   if (!r.ok) throw new Error("The search service answered " + r.status + ". Try again shortly.");
   return r.json();
 }
-const OA_SELECT = "id,doi,display_name,publication_year,authorships,primary_location,cited_by_count,abstract_inverted_index,open_access,type,biblio";
+const OA_SELECT = "id,doi,is_retracted,display_name,publication_year,authorships,primary_location,cited_by_count,abstract_inverted_index,open_access,type,biblio";
 function oaAbstract(inv) {
   if (!inv) return ""; const words = [];
   Object.entries(inv).forEach(([w, pos]) => pos.forEach(p => words[p] = w));
@@ -1534,6 +1561,7 @@ function fromCrossref(m) {
   r.container = stripTags((m["container-title"] || [""])[0]);
   r.volume = m.volume || ""; r.issue = m.issue || ""; r.pages = m.page || "";
   r.articleNumber = !m.page && m["article-number"] ? m["article-number"] : "";
+  if (!r.articleNumber && r.type === "article" && /^(e\d+|\d{4,})$/i.test(String(r.pages).trim())) { r.articleNumber = String(r.pages).trim(); r.pages = ""; }
   r.publisher = r.type === "article" ? "" : (m.publisher || "");
   r.edition = m["edition-number"] || "";
   if (r.type === "dissertation") { r.institution = (m.institution && m.institution[0] && m.institution[0].name) || m.publisher || ""; r.publisher = ""; }
@@ -1553,7 +1581,11 @@ function fromOpenAlex(w) {
   const b = w.biblio || {};
   r.volume = b.volume || ""; r.issue = b.issue || "";
   r.pages = b.first_page ? b.first_page + (b.last_page && b.last_page !== b.first_page ? "-" + b.last_page : "") : "";
-  if (r.type !== "article") { r.publisher = src ? src.host_organization_name || "" : ""; if (r.type === "chapter") r.container = ""; }
+  if (r.type === "article" && /^(e\d+|\d{4,})$/i.test(r.pages)) { r.articleNumber = r.pages; r.pages = ""; }
+  const land = (w.primary_location && w.primary_location.landing_page_url) || "";
+  if (r.type === "article" && !w.doi && /dissertation|thesis|theses|etd/i.test(land + " " + r.container)) r.type = "dissertation";
+  if (r.type === "dissertation") { r.institution = (src && (src.host_organization_name || src.display_name)) || ""; r.container = ""; r.thesisType = /master/i.test(land + r.title) ? "Master's thesis" : "Doctoral dissertation"; r.database = src && src.display_name && src.display_name !== r.institution ? src.display_name : ""; if (!r.database && land) r.database = ""; }
+  else if (r.type !== "article") { r.publisher = src ? src.host_organization_name || "" : ""; if (r.type === "chapter") r.container = ""; }
   r.doi = normDoi(w.doi || "");
   if (!r.doi) r.url = (w.primary_location && w.primary_location.landing_page_url) || "";
   r.abstract = oaAbstract(w.abstract_inverted_index);
@@ -1569,7 +1601,7 @@ async function recordFor(w) {
   if (!base.doi) return base;
   try { const cr = await lookupDoi(base.doi); if (!cr.abstract) cr.abstract = base.abstract; if (!cr.title) return base; return cr; } catch (e) { return base; }
 }
-const inLibrary = doi => doi && S.sources.some(s => normDoi(s.doi).toLowerCase() === normDoi(doi).toLowerCase());
+const inLibrary = (doi, title, oaid) => S.sources.some(s => (doi && normDoi(s.doi).toLowerCase() === normDoi(doi).toLowerCase()) || (oaid && s.openalexId === oaid) || (title && s.title && stripArticle(sentenceCase(s.title)) === stripArticle(sentenceCase(title))));
 S.found = { mode: "search", label: "", items: [], page: 1, total: 0, busy: false, error: "", from: "", to: "", articlesOnly: true, oaOnly: false, sort: "relevance", filter: "", openAbs: {} };
 async function runFound(reset) {
   const F = S.found;
@@ -1626,7 +1658,7 @@ function foundHtml() {
   const F = S.found;
   const pq = currentProject();
   const head = '<div class="row" style="justify-content:space-between;gap:8px"><h2>' + (F.mode === "search" ? "Papers" + (pq ? " on " + esc(pq.name) : "") : esc(F.label)) + '</h2>' +
-    (F.mode !== "search" ? '<button class="btn small ghost" type="button" data-act="foundback">Back to my search</button>' : '') + '</div>';
+    (F.mode !== "search" ? '<button class="btn small ghost" type="button" data-act="foundback">Back to my search</button>' : '<button class="btn small" type="button" data-act="snowball">Papers your sources cite →</button>') + '</div>';
   const controls = '<div class="row small">' +
     '<label class="row" style="gap:4px">From <input id="fFrom" inputmode="numeric" value="' + esc(F.from) + '" placeholder="year" style="width:72px"></label>' +
     '<label class="row" style="gap:4px">to <input id="fTo" inputmode="numeric" value="' + esc(F.to) + '" placeholder="year" style="width:72px"></label>' +
@@ -1640,16 +1672,16 @@ function foundHtml() {
   else if (!F.items.length && !F.busy) body = '<div class="empty"><img class="art" src="assets/search.webp" alt="" onerror="this.remove()"><b>' + (F.label ? "No results" : "Press Search to find papers") + '</b><span>' + (F.label ? "Loosen the filters, or open “Make the search more precise” and use fewer or broader words." : "It searches 250 million scholarly papers for the key words of your question. Tap + Add on the ones worth reading; they go to your Library.") + '</span></div>';
   else {
     body = '<div class="small muted">' + F.total.toLocaleString() + ' results' + (F.mode === "search" ? ' for <span class="mono">' + esc(F.label) + '</span>' : '') + '</div><div class="list">' + F.items.map((w, i) => {
-      const r = fromOpenAlex(w); const have = inLibrary(r.doi);
+      const r = fromOpenAlex(w); const have = inLibrary(r.doi, r.title, w.id);
       const au = r.authors.length ? r.authors.slice(0, 3).map(a => a.split(",")[0]).join(", ") + (r.authors.length > 3 ? " et al." : "") : "No author listed";
       const link = r.doi ? "https://doi.org/" + r.doi : r.url;
       const oa = w.open_access && w.open_access.is_oa && w.open_access.oa_url;
       const fresh = F.freshFrom != null && i >= F.freshFrom;
       return '<div class="hit' + (fresh ? ' fresh" style="--i:' + (i - F.freshFrom) : '') + '"><div class="hit-main"><a class="hit-title" href="' + esc(link || "#") + '" target="_blank" rel="noopener">' + esc(r.title || "Untitled") + '</a>' +
         '<div class="small muted">' + esc(au) + ' · ' + esc(r.year || "n.d.") + (r.container ? ' · <i>' + esc(r.container) + '</i>' : '') + '</div>' +
-        '<div class="chips"><span class="chip">Cited by ' + (w.cited_by_count || 0).toLocaleString() + '</span>' + (oa ? '<a class="chip ok" href="' + esc(oa) + '" target="_blank" rel="noopener">Free PDF / full text ↗</a>' : '') + (r.abstract ? '<button type="button" class="chip linkish" data-act="abs" data-i="' + i + '">' + (F.openAbs[i] ? "Hide abstract" : "Abstract") + '</button>' : '') + '</div>' +
+        '<div class="chips">' + (F.mode === "snowball" && F.counts && F.counts[w.id] ? '<span class="chip acc">Cited by ' + F.counts[w.id] + ' of your sources</span>' : '') + '<span class="chip">Cited by ' + (w.cited_by_count || 0).toLocaleString() + '</span>' + (oa ? '<a class="chip ok" href="' + esc(oa) + '" target="_blank" rel="noopener">Free PDF / full text ↗</a>' : '') + (r.abstract ? '<button type="button" class="chip linkish" data-act="abs" data-i="' + i + '">' + (F.openAbs[i] ? "Hide abstract" : "Abstract") + '</button>' : '') + '</div>' +
         (F.openAbs[i] ? '<p class="abs">' + esc(r.abstract) + '</p>' : '') + '</div>' +
-        '' + (have ? '<span class="seal' + (F.justAdded === r.doi ? " now" : "") + '"><i>✓</i>In library</span></div>' : '<button type="button" class="btn small primary" data-act="addhit" data-i="' + i + '">' + "+ Add" + '</button></div>');
+        '' + (have ? '<span class="seal' + (F.justAdded === w.id ? " now" : "") + '"><i>✓</i>In library</span></div>' : '<button type="button" class="btn small primary" data-act="addhit" data-i="' + i + '">' + "+ Add" + '</button></div>');
     }).join("") + '</div>' +
     (F.items.length < F.total ? '<div class="row" style="justify-content:center"><button class="btn" type="button" data-act="morefound"' + (F.busy ? " disabled" : "") + '>' + (F.busy ? "Loading…" : "Show 20 more") + '</button></div>' : '');
   }
@@ -1659,11 +1691,11 @@ function renderFoundOnly() { const el = $("#found"); if (el) el.innerHTML = foun
 async function addHit(i, btn) {
   const w = S.found.items[i]; if (!w) return;
   btn.disabled = true; btn.textContent = "Adding…";
-  const r = await recordFor(w);
-  if (inLibrary(r.doi)) { renderFoundOnly(); return; }
-  r.projectId = S.project !== "all" ? S.project : ""; r.createdAt = nowIso(); r.updatedAt = r.createdAt; r.status = "screen";
+  const r = await recordFor(w); r.openalexId = w.id;
+  if (inLibrary(r.doi, r.title, w.id)) { renderFoundOnly(); return; }
+  r.projectId = S.project !== "all" ? S.project : ""; r.createdAt = nowIso(); r.updatedAt = r.createdAt; r.status = "screen"; if (w.is_retracted) r.retracted = true;
   if (looksTitleCase(r.title)) r.title = sentenceCase(r.title);
-  try { S.found.justAdded = r.doi; await writeDoc("sources", uid("s"), r); toast("Added to your Library"); } catch (e) {}
+  try { S.found.justAdded = w.id; await writeDoc("sources", uid("s"), r); toast("Added to your Library"); } catch (e) {}
   renderFoundOnly();
 }
 async function doiFill(btn) {
@@ -1711,6 +1743,303 @@ function dataPanelHtml() {
   return '<div class="projects" style="margin-top:22px"><div class="card datacard"><div><h3>Your data</h3><p class="small muted" style="margin:4px 0 0">Everything is saved privately in this browser on this device. No account needed. To use it on another device, or to keep a safe copy, download a backup and open it there with Restore.' +
     (S.sources.length ? ' <b style="color:' + (days == null || days > 7 ? "var(--warn)" : "var(--ok)") + '">' + (last ? "Last backup " + (days === 0 ? "today" : days + " day" + (days === 1 ? "" : "s") + " ago") + "." : "No backup yet.") + '</b>' : '') + '</p></div>' +
     '<div class="row"><button class="btn" type="button" data-act="backup">Download backup</button><label class="btn" for="restoreFile">Restore from backup</label><input type="file" id="restoreFile" accept="application/json,.json" hidden></div></div></div>';
+}
+
+/* ---------- Research tools: full text, study details, claim check, retractions, screening, PRISMA, evidence table, snowballing, AI-use statement ---------- */
+/* Full texts are kept in IndexedDB on this device (too big for the synced library). Each is a list of chunks with a locator ("p. 4" or a section name). */
+const FT = {
+  db: null,
+  open() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => { try { const r = indexedDB.open("lrd-fulltext", 1); r.onupgradeneeded = () => r.result.createObjectStore("texts"); r.onsuccess = () => { this.db = r.result; res(this.db); }; r.onerror = () => rej(r.error); } catch (e) { rej(e); } });
+  },
+  async get(id) { try { const db = await this.open(); return await new Promise(res => { const q = db.transaction("texts").objectStore("texts").get(id); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); } catch (e) { return null; } },
+  async put(id, val) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction("texts", "readwrite"); t.objectStore("texts").put(val, id); t.oncomplete = res; t.onerror = () => rej(t.error); }); },
+  async del(id) { try { const db = await this.open(); db.transaction("texts", "readwrite").objectStore("texts").delete(id); } catch (e) {} }
+};
+S.ft = {}; // id -> {chunks, origin, added} cache for the open source
+S.check = {}; // id -> claim-check results (not stored)
+const normTxt = t => String(t || "").toLowerCase().replace(/[‐‑‒–—-]\s*\n\s*/g, "").replace(/[“”«»„"]/g, '"').replace(/[‘’`´]/g, "'").replace(/\s+/g, " ").replace(/[^\p{L}\p{N}'" ]+/gu, " ").replace(/\s+/g, " ").trim();
+function ftString(ft, max) {
+  let out = ""; for (const c of ft.chunks) { const add = "\n[" + c.loc + "]\n" + c.text; if (out.length + add.length > max) { out += "\n[…text truncated…]"; break; } out += add; }
+  return out;
+}
+/* Deterministic check that a quote really occurs in the paper; returns its locator or null. */
+function locateQuote(ft, quote) {
+  const q = normTxt(quote); if (!ft || q.length < 12) return null;
+  const probes = [q, q.slice(0, 80), q.slice(-80)].filter(p => p.length >= 12);
+  for (const c of ft.chunks) { const t = c._n || (c._n = normTxt(c.text)); if (probes.some(p => t.includes(p))) return c.loc; }
+  return null;
+}
+async function loadFT(id) { if (!(id in S.ft)) S.ft[id] = await FT.get(id); return S.ft[id]; }
+/* pdf.js, loaded on first use; the worker runs from a blob so it is same-origin. */
+let pdfjsReady = null;
+function loadPdfJs() {
+  if (pdfjsReady) return pdfjsReady;
+  const base = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+  pdfjsReady = new Promise((res, rej) => {
+    const sc = document.createElement("script"); sc.src = base + "pdf.min.js";
+    sc.onload = async () => { try { const w = await (await fetch(base + "pdf.worker.min.js")).text(); window.pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([w], { type: "text/javascript" })); res(window.pdfjsLib); } catch (e) { rej(e); } };
+    sc.onerror = () => rej(new Error("The PDF reader didn't load. Check your connection."));
+    document.head.appendChild(sc);
+  });
+  return pdfjsReady;
+}
+async function pdfToChunks(buf) {
+  const lib = await loadPdfJs(); const pdf = await lib.getDocument({ data: buf }).promise; const chunks = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const pg = await pdf.getPage(i); const tc = await pg.getTextContent();
+    let text = "", lastY = null; for (const it of tc.items) { if (lastY !== null && Math.abs(it.transform[5] - lastY) > 2) text += "\n"; else if (text && !text.endsWith(" ")) text += " "; text += it.str; lastY = it.transform[5]; }
+    text = text.replace(/[ \t]+/g, " ").trim(); if (text) chunks.push({ loc: "p. " + i, text });
+  }
+  if (!chunks.length) throw new Error("No text found in that PDF. It may be a scanned image; try another copy.");
+  return chunks;
+}
+function xmlToChunks(xml) {
+  const doc = new DOMParser().parseFromString(xml, "application/xml"); const chunks = [];
+  const abs = doc.querySelector("abstract"); if (abs) chunks.push({ loc: "Abstract", text: abs.textContent.replace(/\s+/g, " ").trim() });
+  doc.querySelectorAll("body > sec").forEach(sec => { const title = (sec.querySelector(":scope > title") || {}).textContent || "Section"; const text = sec.textContent.replace(/\s+/g, " ").trim(); if (text) chunks.push({ loc: title.trim().slice(0, 60) + " section", text }); });
+  if (!chunks.length) { const b = doc.querySelector("body"); if (b) chunks.push({ loc: "Full text", text: b.textContent.replace(/\s+/g, " ").trim() }); }
+  return chunks;
+}
+async function findFreeFullText(s) {
+  const doi = normDoi(s.doi); if (!doi) throw new Error("Add the DOI first, or upload the PDF.");
+  // 1. Europe PMC (open-access health, life-science and education papers) supports browser access.
+  try {
+    const r = await getJSON("https://www.ebi.ac.uk/europepmc/webservices/rest/search?format=json&resultType=lite&query=" + encodeURIComponent('DOI:"' + doi + '"'));
+    const hit = (r.resultList && r.resultList.result || []).find(x => x.pmcid);
+    if (hit) { const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 15000); const x = await fetch("https://www.ebi.ac.uk/europepmc/webservices/rest/" + hit.pmcid + "/fullTextXML", { signal: ctl.signal }).finally(() => clearTimeout(tm)); if (x.ok) { const chunks = xmlToChunks(await x.text()); if (chunks.length) return { chunks, origin: "Europe PMC (" + hit.pmcid + ")" }; } }
+  } catch (e) { console.warn("Europe PMC lookup failed", e); }
+  // 2. The open-access PDF that OpenAlex knows about (works when the host allows it, e.g. arXiv).
+  try {
+    const w = await getJSON("https://api.openalex.org/works/doi:" + encodeURIComponent(doi) + "?select=best_oa_location,open_access");
+    const urls = [w.best_oa_location && w.best_oa_location.pdf_url, w.open_access && w.open_access.oa_url].filter(Boolean);
+    for (const u of urls) { try { const r = await fetch(u); const ct = r.headers.get("content-type") || ""; if (r.ok && /pdf/i.test(ct)) return { chunks: await pdfToChunks(await r.arrayBuffer()), origin: "Open-access PDF" }; } catch (e) {} }
+    if (urls.length) { const err = new Error("There is a free copy, but its website won't let apps download it. Open it, save the PDF, then use Upload PDF."); err.url = urls[0]; throw err; }
+  } catch (e) { if (e.url) throw e; }
+  throw new Error("No free full text found. Download the PDF through your university library, then use Upload PDF.");
+}
+async function attachFT(id, ft) { ft.added = nowIso(); await FT.put(id, ft); S.ft[id] = ft; if (S.draft && S.draft.id === id) { S.draft.hasFullText = ft.origin; S.dirty = true; } }
+
+/* Track how the AI was used, per project, for the AI-use statement. */
+function noteAI(kind, projectId) {
+  const p = S.projects.find(x => x.id === (projectId || S.project)); if (!p) return;
+  const use = Object.assign({}, p.aiUse || {}); use[kind] = (use[kind] || 0) + 1; use.provider = aiName(); use.model = (S.sample && S.sample.config && S.sample.config() || {}).model || "";
+  writeDoc("projects", p.id, { ...p, aiUse: use }).catch(() => {});
+}
+
+/* Study details (evidence-table fields), each with where in the paper it came from. */
+const EXTRACT_FIELDS = [["design", "Study design"], ["setting", "Setting / country"], ["sample", "Participants & sample size"], ["measures", "Intervention / measures"], ["findings", "Key findings"], ["limitations", "Limitations"]];
+async function extractDetails(btn) {
+  const s = S.draft; const ft = await loadFT(s.id);
+  if (!ft && !s.abstract) { toast("Attach the full paper (or paste the abstract) first."); return; }
+  const src = ft ? ftString(ft, 180000) : "[Abstract]\n" + s.abstract;
+  btn.disabled = true; const old = btn.innerHTML; btn.textContent = "Reading the paper…";
+  try {
+    const r = await S.sample.json(`You are extracting study characteristics for a literature review evidence table. Use ONLY the text below. For each field give a concise value (max 40 words), the locator in square brackets where it appears (e.g. "p. 5" or "Methods section"), and a short verbatim quote (max 30 words) copied exactly from the text that supports it. If the text does not state it, use "Not reported" with empty locator and quote. Do not infer or invent.
+Return JSON: {${EXTRACT_FIELDS.map(f => `"${f[0]}":{"value":"","loc":"","quote":""}`).join(",")}}
+
+Paper: ${segsText(refSegs(s, ""))}
+TEXT:
+${src}`, { modelTier: "default" });
+    const ex = {};
+    EXTRACT_FIELDS.forEach(([k]) => { const v = r && r[k] || {}; const loc = ft && v.quote ? locateQuote(ft, v.quote) : null; ex[k] = { value: String(v.value || "Not reported").trim(), loc: loc || (ft ? "" : (v.quote ? "Abstract" : "")), quote: String(v.quote || "").trim(), verified: !!loc || (!ft && !!v.quote && normTxt(s.abstract).includes(normTxt(v.quote).slice(0, 60))) }; });
+    S.draft.extract = ex; S.dirty = true; noteAI("extract", s.projectId); renderEditor();
+    toast("Study details filled. Unverified items are flagged; check those against the paper.");
+  } catch (e) { aiFail(e, "Couldn't extract the details."); }
+  finally { if (btn.isConnected) { btn.disabled = false; btn.innerHTML = old; } }
+}
+/* Claim check: each annotation sentence vs. the paper. The AI proposes a supporting quote; the app confirms the quote really exists. */
+async function claimCheck(btn) {
+  const s = S.draft; const ft = await loadFT(s.id);
+  const text = [s.summary, s.evaluation, s.relevance].filter(Boolean).join(" ").trim();
+  if (!text) { toast("Write or draft the annotation first."); return; }
+  if (!ft && !s.abstract) { toast("Attach the full paper (or paste the abstract) to check against."); return; }
+  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g).map(x => x.trim()).filter(x => x.length > 8);
+  const src = ft ? ftString(ft, 180000) : "[Abstract]\n" + s.abstract;
+  btn.disabled = true; const old = btn.innerHTML; btn.textContent = "Checking…";
+  try {
+    const r = await S.sample.json(`Fact-check an annotated-bibliography entry against the source text. For each numbered sentence decide: "supported" (the text clearly says this), "partly" (some of it is supported, some goes beyond the text), "not_found" (the text does not say this), or "opinion" (an evaluative or relevance judgement by the writer, not a factual claim about the paper). For supported/partly give one verbatim quote (max 35 words) copied EXACTLY from the text. Return JSON: {"results":[{"n":1,"verdict":"","quote":"","note":""}]} where note briefly says what is unsupported, if anything.
+
+SENTENCES:
+${sentences.map((x, i) => (i + 1) + ". " + x).join("\n")}
+
+SOURCE TEXT:
+${src}`, { modelTier: "default" });
+    const res = (r && r.results) || [];
+    S.check[s.id] = sentences.map((sen, i) => {
+      const x = res.find(y => +y.n === i + 1) || {}; let verdict = x.verdict || "not_found"; const quote = String(x.quote || "").trim();
+      let loc = null; if (quote) loc = ft ? locateQuote(ft, quote) : (normTxt(s.abstract).includes(normTxt(quote).slice(0, 60)) ? "Abstract" : null);
+      if ((verdict === "supported" || verdict === "partly") && !loc) verdict = "unverified";
+      return { sen, verdict, quote, loc, note: x.note || "" };
+    });
+    noteAI("check", s.projectId); renderCheck();
+  } catch (e) { aiFail(e, "Couldn't check the annotation."); }
+  finally { if (btn.isConnected) { btn.disabled = false; btn.innerHTML = old; } }
+}
+const VERDICT = { supported: ["ok", "Supported"], partly: ["warn", "Partly supported"], not_found: ["bad", "Not in the paper"], unverified: ["bad", "Quote not found in paper"], opinion: ["", "Your judgement"] };
+function renderCheck() {
+  const box = $("#claimBox"); if (!box || !S.draft) return; const rs = S.check[S.draft.id];
+  if (!rs) { box.innerHTML = ""; return; }
+  const bad = rs.filter(r => ["not_found", "unverified", "partly"].includes(r.verdict)).length;
+  box.innerHTML = '<div class="small" style="margin-bottom:6px">' + (bad ? '<b style="color:var(--bad)">' + bad + ' sentence' + (bad > 1 ? "s need" : " needs") + ' attention.</b> Edit them, then check again.' : '<b style="color:var(--ok)">Every factual sentence is backed by the paper.</b>') + '</div>' +
+    rs.map(r => { const v = VERDICT[r.verdict] || VERDICT.not_found; return '<div class="claim"><span class="chip ' + v[0] + '">' + v[1] + '</span><div class="claim-body"><div>' + esc(r.sen) + '</div>' + (r.loc ? '<div class="claim-q">“' + esc(r.quote) + '” <b>' + esc(r.loc) + '</b></div>' : '') + (r.note && r.verdict !== "supported" ? '<div class="small muted">' + esc(r.note) + '</div>' : '') + '</div></div>'; }).join("");
+}
+function fullTextSectionHtml(s) {
+  if (!STANDALONE) return "";
+  const has = s.hasFullText; const ex = s.extract;
+  return '<div class="section"><div class="label"><span>Full paper</span>' + (has ? '<span class="chip ok">Attached · ' + esc(has) + '</span>' : '') + '</div>' +
+    (has ? '<div class="row"><button type="button" class="btn small" data-act="ftremove">Remove</button><label class="btn small" for="pdfUp">Replace with PDF</label></div>'
+         : '<div class="row"><button type="button" class="btn small primary" data-act="ftfind">Find free full text</button><label class="btn small" for="pdfUp">Upload PDF</label><span class="small muted">Paywalled? Download it through your university library, then upload.</span></div>') +
+    '<input type="file" id="pdfUp" accept="application/pdf,.pdf" hidden><div class="small muted" id="ftMsg" role="status"></div></div>' +
+    '<div class="section"><div class="label"><span>Study details</span><button type="button" class="btn small" data-act="extract"><span class="spark">' + aiName() + '</span> Extract from ' + (has ? "paper" : "abstract") + '</button></div>' +
+    (ex ? '<div class="extract">' + EXTRACT_FIELDS.map(([k, l]) => { const v = ex[k] || {}; return '<label class="f" for="ex-' + k + '"><span>' + l + (v.loc ? ' <b class="loc">' + esc(v.loc) + '</b>' : '') + (v.value && v.value !== "Not reported" && !v.verified ? ' <span class="chip warn">check</span>' : '') + '</span><textarea id="ex-' + k + '" data-ex="' + k + '" rows="2">' + esc(v.value) + '</textarea>' + (v.quote ? '<span class="hint">“' + esc(v.quote) + '”</span>' : '') + '</label>'; }).join("") + '</div>'
+        : '<span class="small muted">Design, setting, sample, measures, findings and limitations, each with the page it came from. These fill the evidence table.</span>') +
+    '</div>';
+}
+function annotationExtrasHtml(s) {
+  if (!STANDALONE) return "";
+  return '<div class="row"><button type="button" class="btn small" data-act="claimcheck"><span class="spark">' + aiName() + '</span> Check against the paper</button>' +
+    '<label class="row small" style="gap:6px"><input type="checkbox" id="fld-reviewed"' + (s.reviewed ? " checked" : "") + '> I\'ve checked this annotation against the source</label>' +
+    (s.aiDraft && !s.reviewed ? '<span class="chip warn">AI draft · not yet reviewed</span>' : '') + '</div><div id="claimBox"></div>';
+}
+async function onPdfUpload(file) {
+  const s = S.draft; const msg = $("#ftMsg"); if (!s || !file) return;
+  if (file.size > 60e6) { msg.textContent = "That PDF is over 60 MB. Try a smaller copy."; return; }
+  msg.textContent = "Reading the PDF…";
+  try { const chunks = await pdfToChunks(await file.arrayBuffer()); await attachFT(s.id, { chunks, origin: "Uploaded PDF, " + chunks.length + " pages" }); renderEditor(); toast("Paper attached. Save to keep it with this source."); }
+  catch (e) { msg.textContent = e.message || "Couldn't read that PDF."; }
+}
+async function onFindFT(btn) {
+  const s = S.draft; const msg = $("#ftMsg"); btn.disabled = true; msg.textContent = "Looking for a free copy (this can take up to 20 seconds)…";
+  try { const ft = await findFreeFullText(s); await attachFT(s.id, ft); renderEditor(); toast("Full text attached from " + ft.origin + ". Save to keep it."); }
+  catch (e) { msg.innerHTML = esc(e.message) + (e.url ? ' <a href="' + esc(e.url) + '" target="_blank" rel="noopener">Open the free copy ↗</a>' : ''); btn.disabled = false; }
+}
+
+/* Retractions (OpenAlex marks retracted works). */
+async function checkRetractions(btn) {
+  const list = scoped().filter(s => normDoi(s.doi)); if (!list.length) { toast("No sources with DOIs to check."); return; }
+  btn.disabled = true; const old = btn.textContent; btn.textContent = "Checking…"; let flagged = 0;
+  try {
+    for (let i = 0; i < list.length; i += 40) {
+      const part = list.slice(i, i + 40);
+      const r = await getJSON("https://api.openalex.org/works?per-page=50&select=doi,is_retracted&filter=doi:" + part.map(s => encodeURIComponent(normDoi(s.doi))).join("|"));
+      for (const w of r.results || []) { const d = normDoi(w.doi).toLowerCase(); const s = part.find(x => normDoi(x.doi).toLowerCase() === d); if (s && !!w.is_retracted !== !!s.retracted) { await writeDoc("sources", s.id, { ...s, retracted: !!w.is_retracted }); } if (w.is_retracted) flagged++; }
+    }
+    toast(flagged ? flagged + " retracted source" + (flagged > 1 ? "s" : "") + " found and flagged." : "No retractions among " + list.length + " sources.");
+  } catch (e) { toast(e.message); }
+  btn.disabled = false; btn.textContent = old;
+}
+
+/* AI screening suggestions against the project's criteria. Suggestions only; the person decides. */
+async function aiScreen(btn) {
+  const p = currentProject();
+  if (!p) { toast("Open a project first (top of the page)."); return; }
+  if (!p.criteria) { openProjectModal(p); toast("Add inclusion and exclusion criteria first."); return; }
+  const queue = scoped().filter(s => (s.status || "screen") === "screen" && !s.aiScreen);
+  if (!queue.length) { toast("Nothing left to screen."); return; }
+  btn.disabled = true; const old = btn.innerHTML; let done = 0;
+  try {
+    for (let i = 0; i < queue.length; i += 15) {
+      const part = queue.slice(i, i + 15); btn.textContent = "Screening " + Math.min(i + 15, queue.length) + " of " + queue.length + "…";
+      const r = await S.sample.json(`You assist with title/abstract screening for a literature review. Judge each record ONLY against the criteria, using only its title and abstract. Answer "include" (meets criteria or might, so read the full text), "exclude" (clearly fails a criterion; name which), or "unsure" (not enough information). Be conservative: when in doubt, "unsure". Reason: one short sentence.
+Research question: ${p.question || "(none)"}
+Criteria: ${p.criteria}
+Return JSON: {"decisions":[{"id":"","decision":"","reason":""}]}
+
+RECORDS:
+${part.map(s => "id: " + s.id + "\ntitle: " + s.title + " (" + (s.year || "n.d.") + ", " + (s.type || "") + ")\nabstract: " + String(s.abstract || "(no abstract)").slice(0, 1500)).join("\n\n")}`, { modelTier: "default" });
+      for (const d of (r && r.decisions) || []) { const s = part.find(x => x.id === d.id); if (!s || !["include", "exclude", "unsure"].includes(d.decision)) continue; await writeDoc("sources", s.id, { ...s, aiScreen: { decision: d.decision, reason: String(d.reason || "").slice(0, 300), at: nowIso() } }); done++; }
+      noteAI("screen", p.id);
+    }
+    toast(done + " suggestion" + (done === 1 ? "" : "s") + " ready. Open each source to accept or override.");
+  } catch (e) { aiFail(e, "Couldn't screen."); }
+  if (btn.isConnected) { btn.disabled = false; btn.innerHTML = old; }
+}
+function screenSuggestionHtml(s) {
+  const a = s.aiScreen; if (!a || (s.status || "screen") !== "screen") return "";
+  const lab = { include: "Read the full text", exclude: "Exclude", unsure: "Unsure" }[a.decision];
+  return '<div class="suggest-box ' + a.decision + '"><div><b>' + esc(aiName()) + ' suggests: ' + lab + '</b><div class="small">' + esc(a.reason) + '</div></div><div class="row">' +
+    (a.decision !== "unsure" ? '<button type="button" class="btn small primary" data-act="acceptscreen">Accept</button>' : '') + '<button type="button" class="btn small" data-act="dismissscreen">Dismiss</button></div></div>';
+}
+
+/* PRISMA-style flow from the search log and screening decisions. */
+function prismaCounts() {
+  const all = scoped(); const logs = S.searches.filter(x => S.project === "all" || x.projectId === S.project);
+  const identified = logs.reduce((n, l) => n + (parseInt(String(l.results).replace(/\D/g, ""), 10) || 0), 0);
+  const c = k => all.filter(s => (s.status || "screen") === k).length;
+  const reasons = {}; all.filter(s => s.status === "exclude").forEach(s => { const r = (s.exclusionReason || "No reason recorded").trim(); reasons[r] = (reasons[r] || 0) + 1; });
+  return { searches: logs.length, identified, screened: all.length, toScreen: c("screen"), excluded: c("exclude"), reading: c("reading"), included: c("include"), reasons };
+}
+function prismaSvg(k) {
+  const W = 640, box = (x, y, w, h, title, n) => '<g><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="6" fill="#FDF9EF" stroke="#6B573F"/><text x="' + (x + w / 2) + '" y="' + (y + 24) + '" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#2C1F14">' + title + '</text><text x="' + (x + w / 2) + '" y="' + (y + 46) + '" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="bold" fill="#9A3D21">' + n + '</text></g>';
+  const arrow = (x1, y1, x2, y2) => '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#6B573F" stroke-width="1.5" marker-end="url(#ah)"/>';
+  const rs = Object.entries(k.reasons).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const rh = 60 + rs.length * 16;
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' 430" width="100%" role="img" aria-label="PRISMA flow diagram"><defs><marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#6B573F"/></marker></defs><rect width="' + W + '" height="430" fill="#FDF9EF"/>' +
+    box(40, 20, 300, 60, "Records identified (" + k.searches + " logged searches)", "n = " + k.identified.toLocaleString()) + arrow(190, 80, 190, 108) +
+    box(40, 110, 300, 60, "Records added for screening", "n = " + k.screened) + arrow(340, 140, 378, 140) +
+    '<g><rect x="380" y="110" width="230" height="' + rh + '" rx="6" fill="#FDF9EF" stroke="#6B573F"/><text x="495" y="134" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#2C1F14">Records excluded</text><text x="495" y="156" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="bold" fill="#9A3D21">n = ' + k.excluded + '</text>' + rs.map(([r, n], i) => '<text x="392" y="' + (178 + i * 16) + '" font-family="Georgia,serif" font-size="11" fill="#6B573F">' + esc(r.slice(0, 34)) + ' (' + n + ')</text>').join("") + '</g>' +
+    arrow(190, 170, 190, 198) + box(40, 200, 300, 60, "Full texts being assessed", "n = " + k.reading) + arrow(190, 260, 190, 288) +
+    box(40, 290, 300, 60, "Studies included", "n = " + k.included) +
+    '<text x="40" y="380" font-family="Georgia,serif" font-size="11" fill="#6B573F">Still to screen: ' + k.toScreen + '. Counts come from the search log and screening decisions recorded in Lit Review Desk.</text>' +
+    '<text x="40" y="396" font-family="Georgia,serif" font-size="11" fill="#6B573F">Logged result counts may overlap between databases (duplicates are not removed here).</text></svg>';
+}
+/* Evidence table */
+function evidenceRows() { const { list, letters } = bibList(); return list.map(s => ({ s, cite: inText(s, letters[s.id]).parenText, ex: s.extract || {} })); }
+function evidenceHtmlTable(rows) {
+  return '<table class="ev"><thead><tr><th>Study</th>' + EXTRACT_FIELDS.map(f => '<th>' + f[1] + '</th>').join("") + '</tr></thead><tbody>' + rows.map(r => '<tr><td>' + esc(r.cite.replace(/^\(|\)$/g, "")) + '</td>' + EXTRACT_FIELDS.map(([k]) => '<td>' + esc((r.ex[k] && r.ex[k].value) || "") + ((r.ex[k] && r.ex[k].loc) ? ' <span class="loc">(' + esc(r.ex[k].loc) + ')</span>' : '') + '</td>').join("") + '</tr>').join("") + '</tbody></table>';
+}
+function reportHtml() {
+  if (!STANDALONE) return "";
+  const k = prismaCounts(); const rows = evidenceRows(); const filled = rows.filter(r => Object.keys(r.ex).length).length;
+  const { list } = bibList(); const drafts = list.filter(s => s.aiDraft && !s.reviewed).length;
+  return '<div class="card report"><div class="row" style="justify-content:space-between"><h2>Evidence table</h2><div class="row"><button class="btn small" type="button" data-act="evcopy"' + (rows.length ? "" : " disabled") + '>Copy as table</button><button class="btn small" type="button" data-act="evcsv"' + (rows.length ? "" : " disabled") + '>Download (.csv)</button></div></div>' +
+    '<span class="small muted">One row per source in the bibliography. ' + filled + ' of ' + rows.length + ' have study details; fill the rest with “Extract” in each source.</span>' +
+    (rows.length ? '<div class="tablewrap">' + evidenceHtmlTable(rows) + '</div>' : '') + '</div>' +
+    '<div class="card report"><div class="row" style="justify-content:space-between"><h2>Search &amp; screening flow</h2><button class="btn small" type="button" data-act="prismasvg">Download diagram (.svg)</button></div><span class="small muted">A PRISMA-style flow diagram built from your search log and screening decisions.</span><div class="prisma">' + prismaSvg(k) + '</div></div>' +
+    '<div class="card report"><div class="row" style="justify-content:space-between"><h2>AI-use statement</h2><button class="btn small" type="button" data-act="aistatement">Write statement</button></div><span class="small muted">An honest description of how searches were run and how AI was used, for your professor or a methods section.' + (drafts ? ' <b style="color:var(--warn)">' + drafts + ' AI-drafted annotation' + (drafts > 1 ? "s are" : " is") + ' not yet marked reviewed.</b>' : '') + '</span></div>';
+}
+function aiStatementText() {
+  const p = currentProject(); const logs = S.searches.filter(x => S.project === "all" || x.projectId === S.project).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const dbs = [...new Set(logs.map(l => l.database).filter(Boolean))];
+  const use = (p && p.aiUse) || {}; const { list } = bibList(); const ai = list.filter(s => s.aiDraft); const rev = ai.filter(s => s.reviewed).length;
+  const parts = [];
+  parts.push("Literature searches were conducted " + (dbs.length ? "in " + dbs.join(", ") + " " : "") + (logs.length ? "between " + logs[0].date + " and " + logs[logs.length - 1].date + " (" + logs.length + " recorded searches; search strings and result counts are kept in the search log)" : "") + ".");
+  parts.push("Records were screened by the researcher" + (p && p.criteria ? " against predefined criteria (" + p.criteria + ")" : "") + ", and " + list.length + " sources were retained for this bibliography.");
+  const tasks = [];
+  if (use.strategy) tasks.push("suggest search terms");
+  if (use.screen) tasks.push("suggest title/abstract screening decisions, each of which the researcher accepted or overrode");
+  if (use.extract) tasks.push("extract study characteristics from full texts, with page or section references");
+  if (use.draft) tasks.push("draft initial annotations");
+  if (use.check) tasks.push("check annotation statements against the source texts");
+  if (use.synth) tasks.push("suggest cross-cutting themes");
+  if (tasks.length) {
+    parts.push("An AI assistant (" + (use.provider || "AI") + (use.model ? ", model " + use.model : "") + ") was used to " + tasks.join("; ") + ".");
+    parts.push("All AI output was treated as a draft and verified against the original sources by the researcher" + (ai.length ? " (" + rev + " of " + ai.length + " AI-drafted annotations marked as checked)" : "") + ". The researcher takes responsibility for the final content.");
+  } else parts.push("No generative AI was used to produce the content.");
+  parts.push("References were formatted in APA 7th edition style with Lit Review Desk and checked by the researcher.");
+  return parts.join(" ");
+}
+
+/* Snowballing: works cited by several of your included or in-progress sources that you don't have yet. */
+async function snowball() {
+  const base = scoped().filter(s => ["include", "reading"].includes(s.status) && normDoi(s.doi)).slice(0, 50);
+  if (base.length < 2) { toast("Include or start reading at least two sources with DOIs first."); return; }
+  const F = S.found; Object.assign(F, { mode: "snowball", label: "Papers your sources cite most that aren't in your library", items: [], total: 0, error: "", busy: true, counts: {} });
+  S.tab = "find"; showTab(); renderAll(); setTimeout(() => { const el = $("#found"); if (el) el.scrollIntoView({ block: "start" }); }, 50);
+  try {
+    const r = await getJSON("https://api.openalex.org/works?per-page=50&select=id,doi,referenced_works&filter=doi:" + base.map(s => encodeURIComponent(normDoi(s.doi))).join("|"));
+    const own = new Set((r.results || []).map(w => w.id)); const count = {};
+    (r.results || []).forEach(w => (w.referenced_works || []).forEach(id => { if (!own.has(id)) count[id] = (count[id] || 0) + 1; }));
+    let top = Object.entries(count).sort((a, b) => b[1] - a[1]); const min = top.length && top[0][1] >= 2 ? 2 : 1;
+    top = top.filter(([, n]) => n >= min).slice(0, 40);
+    if (!top.length) { F.busy = false; F.total = 0; renderFoundOnly(); return; }
+    const ws = await getJSON("https://api.openalex.org/works?per-page=50&select=" + OA_SELECT + "&filter=openalex_id:" + top.map(([id]) => id.split("/").pop()).join("|"));
+    const items = (ws.results || []).filter(w => !inLibrary(w.doi, w.display_name, w.id)).sort((a, b) => (count[b.id] || 0) - (count[a.id] || 0) || (b.cited_by_count || 0) - (a.cited_by_count || 0));
+    items.forEach(w => F.counts[w.id] = count[w.id]); F.items = items; F.total = items.length; F.freshFrom = 0; setTimeout(() => { F.freshFrom = null; }, 60);
+  } catch (e) { F.error = e.message; }
+  F.busy = false; renderFoundOnly();
 }
 
 /* ---------- Start ---------- */
@@ -1781,6 +2110,7 @@ function renderBib() {
       (list.length ? list.map(s => '<div class="entry"><p class="r">' + segsHtml(refSegs(s, letters[s.id])) + '</p>' + (S.bib.annotations ? annParas(s).map(p => '<p class="a' + (S.bib.layout === "split" ? " fl" : "") + '">' + esc(p) + '</p>').join("") : "") + '</div>').join("")
         : '<p style="text-align:center;color:#666">Nothing to show. Mark sources as Included in the Library, or tick more statuses above.</p>') +
     '</div></div>' +
+    reportHtml() +
     '<p class="small muted" style="max-width:816px;margin:10px auto 0">Formatted per APA 7: alphabetical by first author, hanging indent of 0.5 in, double spacing, Times New Roman 12 in the Word file, annotations indented 0.5 in beneath each reference. Check your instructor’s or employer’s guidelines for annotation length and layout.</p>';
 }
 async function exportBib(kind) {
@@ -1856,14 +2186,27 @@ document.addEventListener("click", async e => {
     case "delete": {
       const box = $("#delConfirm");
       if (!box.dataset.armed) { box.dataset.armed = "1"; box.innerHTML = '<span class="small">Delete permanently?</span> <button class="btn small danger" type="button" data-act="delete">Yes, delete</button>'; return; }
-      try { await deleteDoc("sources", s.id); closeEditor(true); toast("Deleted"); } catch (e2) {}
+      try { await deleteDoc("sources", s.id); if (STANDALONE) FT.del(s.id); closeEditor(true); toast("Deleted"); } catch (e2) {}
       break;
     }
     case "strategy": suggestStrategy(a); break;
     case "addconcept": S.strategy.concepts.push({ name: "", terms: "" }); renderFind(); break;
     case "rmconcept": S.strategy.concepts.splice(+a.dataset.i, 1); if (!S.strategy.concepts.length) S.strategy.concepts.push({ name: "", terms: "" }); renderFind(); break;
     case "copybool": copyText(booleanString()); break;
-    case "runfound": if (S.found.mode === "search") S.found.label = ""; runFound(true); break;
+    case "runfound": if (S.found.mode === "snowball") { snowball(); break; } if (S.found.mode === "search") S.found.label = ""; runFound(true); break;
+    case "snowball": snowball(); break;
+    case "aiscreen": aiScreen(a); break;
+    case "retract": checkRetractions(a); break;
+    case "ftfind": onFindFT(a); break;
+    case "ftremove": FT.del(s.id); S.ft[s.id] = null; s.hasFullText = ""; delete S.check[s.id]; S.dirty = true; renderEditor(); break;
+    case "extract": extractDetails(a); break;
+    case "claimcheck": claimCheck(a); break;
+    case "acceptscreen": { const d = s.aiScreen.decision; s.status = d === "include" ? "reading" : "exclude"; if (d === "exclude" && !s.exclusionReason) s.exclusionReason = s.aiScreen.reason; s.screenedWithAI = true; S.dirty = true; renderEditor(d === "exclude" ? "fld-exclusionReason" : null); break; }
+    case "dismissscreen": delete s.aiScreen; s.aiScreen = null; S.dirty = true; renderEditor(); break;
+    case "evcopy": { const rows = evidenceRows(); const html = evidenceHtmlTable(rows).replace('<table class="ev">', '<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:Times New Roman;font-size:10pt">'); copyText(rows.map(r => [r.cite].concat(EXTRACT_FIELDS.map(([k]) => (r.ex[k] && r.ex[k].value) || "")).join("\t")).join("\n"), html); break; }
+    case "evcsv": { const rows = evidenceRows(); saveFile("evidence-table.csv", "\uFEFF" + [["Study"].concat(EXTRACT_FIELDS.map(f => f[1])).concat(["Reference"])].concat(rows.map(r => [r.cite].concat(EXTRACT_FIELDS.map(([k]) => ((r.ex[k] && r.ex[k].value) || "") + ((r.ex[k] && r.ex[k].loc) ? " (" + r.ex[k].loc + ")" : ""))).concat([segsText(refSegs(r.s, ""))]))).map(x => x.map(csvCell).join(",")).join("\r\n")); break; }
+    case "prismasvg": saveFile("prisma-flow.svg", prismaSvg(prismaCounts())); break;
+    case "aistatement": { const t = aiStatementText(); $("#modalRoot").innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>AI-use statement</h2><p class="small muted" style="margin:0">Built from what you actually did in this tool. Edit it as needed.</p><textarea id="aiStmt" rows="10"></textarea><div class="row" style="justify-content:flex-end"><button class="btn" type="button" id="stmtCopy">Copy</button><button class="btn primary" type="button" data-act="modalclose">Done</button></div></div></div>'; $("#aiStmt").value = t; $("#stmtCopy").onclick = () => copyText($("#aiStmt").value); break; }
     case "morefound": S.found.page++; runFound(false); break;
     case "foundback": Object.assign(S.found, { mode: "search", filter: "", items: [], total: 0, label: "", sort: "relevance" }); renderFoundOnly(); break;
     case "abs": S.found.openAbs[+a.dataset.i] = !S.found.openAbs[+a.dataset.i]; renderFoundOnly(); break;
@@ -1897,6 +2240,7 @@ document.addEventListener("input", e => {
     if (k === "type" || k === "status") return; renderLive();
     return;
   }
+  if (t.dataset.ex && S.draft) { S.draft.extract = Object.assign({}, S.draft.extract); S.draft.extract[t.dataset.ex] = Object.assign({}, S.draft.extract[t.dataset.ex], { value: t.value, verified: true }); S.dirty = true; renderLive(); return; }
   if (t.dataset.quote != null && S.draft) { S.draft.quotes[+t.dataset.quote][t.dataset.qf] = t.value; S.dirty = true; renderLive(); return; }
   if (t.dataset.ci != null) { S.strategy.concepts[+t.dataset.ci][t.dataset.cf] = t.value; const q = booleanString(); const out = $("#boolOut"); if (out) out.innerHTML = q ? esc(q) : '<span class="muted">Fill in the concepts to build the string.</span>'; S.strategy.open = true; return; }
   if (t.id === "bibTitleIn") { S.bib.title = t.value; const h = $("#paper h1"); if (h) h.textContent = bibTitle(); return; }
@@ -1924,6 +2268,8 @@ document.addEventListener("change", async e => {
   if (t.id === "fArt") { S.found.articlesOnly = t.checked; return; }
   if (t.id === "fOA") { S.found.oaOnly = t.checked; return; }
   if (t.id === "fSort") { S.found.sort = t.value; if (S.found.items.length) runFound(true); return; }
+  if (t.id === "pdfUp") { const f = t.files && t.files[0]; t.value = ""; if (f) onPdfUpload(f); return; }
+  if (t.id === "fld-reviewed" && S.draft) { S.draft.reviewed = t.checked; S.dirty = true; renderEditor(); return; }
   if (t.id === "restoreFile") { const f = t.files && t.files[0]; t.value = ""; if (f) restoreData(f); return; }
   if (t.id === "moreExport") { const v = t.value; t.value = ""; if (v) exportBib(v); return; }
 });
@@ -1965,7 +2311,7 @@ $("#list").innerHTML = '<div class="empty"><b>Loading your library…</b></div>'
   const c = window.claude;
   if (!c || !c.use) { setBanner("Running outside claude.ai: changes stay in this tab only and are lost on reload."); renderAll(); return; }
   const [db, sample, downloads] = await Promise.all([c.use("db"), c.use("sample"), c.use("downloads")]);
-  S.sample = sample; S.downloads = downloads; renderHeaderAI();
+  S.sample = sample; S.downloads = downloads; renderHeaderAI(); if (STANDALONE) $("#libTools").hidden = false;
   if (!db) { setBanner("Sign in on claude.ai to save your library. For now, changes stay in this tab only."); renderAll(); return; }
   S.db = db; S.live = true;
   subscribe("sources"); subscribe("projects"); subscribe("searches");
